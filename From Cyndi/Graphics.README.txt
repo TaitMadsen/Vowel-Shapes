@@ -1,0 +1,5 @@
+To run:
+
+GraphicsModulePrototype\ 1.1.py
+
+Representation Modes can be changed by (un)commenting lines in main()
