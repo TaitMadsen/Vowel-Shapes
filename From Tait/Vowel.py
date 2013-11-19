@@ -2,7 +2,6 @@
 
 class Vowel:
     def __init__(self, f1, f2, f3, fileName):
-        self.fileName = fileName
         
         # Check to see if the f's are all 0, and a fileName exists
         if f1 == 0 and f2 == 0 and f3 == 0 and fileName != '':
@@ -36,8 +35,6 @@ class Vowel:
     # Setter methods
     def setAnnotation(self, anno):
         self.annotation = anno
-    def setFileName(self, name):
-        self.fileName = name
     
     # This setter method takes a list of the first 3 formants, and then normalizes them to get bx and by
     def setF(self, fList):
@@ -66,8 +63,8 @@ class Vowel:
 
 
     # Save to a file
-    def saveToFile(self):
-        f = open(self.fileName + ".txt", "w")
+    def saveToFile(self, path):
+        f = open(path, "w")
         f.write( str(self.f1) + '\n')
         f.write( str(self.f2) + '\n')
         f.write( str(self.f3) + '\n')
@@ -76,8 +73,8 @@ class Vowel:
 
     # Load from a file
     # This will be called by init if necessary
-    def loadFromFile(self):
-        f = open(self.fileName + ".txt", "r")
+    def loadFromFile(self, path):
+        f = open(path, "r")
         info = f.read().split('\n')
         self.f1 = float(info[0])
         self.f2 = float(info[1])

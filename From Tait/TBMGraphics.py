@@ -36,7 +36,7 @@ class GraphWin(tk.Canvas):
 
     def __init__(self, parent, autoflush=True):
         master = parent.parent
-        tk.Canvas.__init__(self, master, width=parent.width, height=parent.height)
+        tk.Canvas.__init__(self, master, width=parent.width, height=parent.height-100) # NB!
         self.pack()
         master.resizable(0,0)
         self.foreground = "black"

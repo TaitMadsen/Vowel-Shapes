@@ -12,29 +12,42 @@ class Application(tk.Frame):
         tk.Frame.__init__(self, parent, background="white") # Call the superclass' constructor method
         self.parent = parent
         self.parent.title("Vowel Shapes")
-        self.pack(fill=tk.BOTH, expand=1) # set expand=0 if you don't want the window to be resizable
+        #self.pack(fill=tk.BOTH, expand=1) # set expand=0 if you don't want the window to be resizable
         
         # Dimensions
         self.width = width
         self.height = height
         
-        # The menubar
-        self.menubar = tk.Menu(self.parent)
-        self.parent.config(menu=self.menubar)
-        
         # The graphWin canvas
         self.graphWin = None
         self.setupCanvas()
         
+        # The menubar
+        self.menubar = tk.Menu(self.parent)
+        self.parent.config(menu=self.menubar)
+        
+        # The menus
         self.setupFileMenu()
         self.setupActionMenu()
         self.setupHelpMenu()
+
+        # The buttons
+        self.recordButton = tk.Button(self.parent, text="Record", command=self.record)
+        self.recordButton.grid(column=0, row=1)
+        
+        self.playButton = tk.Button(self.parent, text="Play", command=self.play)
+        self.playButton.grid(column=1, row=1)
+    
+        # Vowel objects
+        self.exampleVowel = None
+        self.activeVowel = None
     
     
     def setupCanvas(self):
         self.graphWin = g.GraphWin(self)
         self.graphWin.setCoords(0,0,100,75)
-        self.graphWin.pack(fill=tk.BOTH, expand=1)
+        self.graphWin.grid(column=0,row=0,columnspan=2)
+        
 
     # Menus
     def setupFileMenu(self):
@@ -66,22 +79,40 @@ class Application(tk.Frame):
     # menu commands
     def saveVowel(self):
         path = tk.filedialog.asksaveasfilename()
+        self.activeVowel.saveToFile(path)
 
     def loadVowel(self):
         path = tk.filedialog.askopenfilename()
+        self.exampleVowel = Vowel(0,0,0, path)
     
     def clearVowel(self):
-        #nothing yet
-        return
+        self.exampleVowel = None
 
     def help(self):
         #nothing yet
         return
 
-
     def testCanvas(self):
         box = g.Rectangle( Point(1,1), Point(99,74))
         box.draw(self.graphWin)
+                          
+    
+    # Button commands
+    def record(self):
+        if self.recordButton["text"] == "Record":
+            self.recordButton.config(text="Stop")
+            self.playButton.config(state=tk.DISABLED)
+        else:
+            self.recordButton.config(text="Record")
+            self.playButton.config(state=tk.NORMAL)
+
+    def play(self):
+        if self.playButton["text"] == "Play":
+            self.playButton.config(text="Stop")
+            self.recordButton.config(state=tk.DISABLED)
+        else:
+            self.playButton.config(text="Play")
+            self.recordButton.config(state=tk.NORMAL)
 
 
 
@@ -92,9 +123,9 @@ def main():
     
     root = tk.Tk()
     width = 800
-    height = 600
+    height = 700
     # ("<width>x<height>+<xcoords>+<ycoords>")
-    root.geometry("%sx%s+150+100" % (width, height) )
+    root.geometry("%sx%s+80+70" % (width, height) )
     app = Application(root,width, height)
     root.mainloop()
 
