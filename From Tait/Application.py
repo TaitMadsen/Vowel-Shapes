@@ -6,11 +6,13 @@ import TBMGraphics as g
 from Graph import *
 import tkinter as tk
 from tkinter import filedialog  # CJR Windows needed this import
-import tkSnack as tkSnack
+#import tkSnack as tkSnack
 from GraphicsModule import *
 from VowelShapeConfig import *
 import sys
 
+useTkSnack = False
+id = None
 
 class Application(tk.Frame):
     def __init__(self, parent, sound, width, height):
@@ -123,7 +125,6 @@ class Application(tk.Frame):
                 # planning a activeVowel class - except to add the sound object
                 #
                 #self.activeVowel.saveToFile(fileSave, self.snd)
-                self.snd.save
                 fileSave.close()
             else :
                 # this was just for testing
@@ -160,17 +161,31 @@ class Application(tk.Frame):
             self.recordButton.config(text="Stop")
             self.playButton.config(state=tk.DISABLED)
             # CJR add in the tkSnack commands to start the recording
-            self.snd.record()
+            if (useTkSnack) :
+                self.snd.record()
             self.id = self.parent.after(100,self.draw())
+            #else:
+            #    self.start()
         else:
             print("Stop")
             self.recordButton.config(text="Record")
             self.playButton.config(state=tk.NORMAL)
             # CJR add in the tkSnack commands to stop the recording
-            self.snd.stop()
+            if (useTkSnack) :
+                self.snd.stop()
             print("stop the id object:", self.id)
             self.parent.after_cancel(self.id)
-        print("exiting the record method ", id)
+            #else:
+            #    self.stop()
+        print("exiting the record method ", self.id)
+
+    def start(self):
+        global id
+        id = self.parent.after(100,self.draw())
+
+    def stop(self):
+        global id
+        self.parent.after_cancel(id)
 
     def play(self):
         if self.playButton["text"] == "Play":
@@ -183,15 +198,27 @@ class Application(tk.Frame):
 
     # CJR window methods
     def draw(self):
-        global graphModule
-        if (self.snd.length() > self.sound_length) :
-            self.sound_pos = self.snd.length() - self.sound_length
-            formants = self.snd.formant(start=self.sound_pos,numformants=4)
-            #print(formants[0][0], formants[0][1], formants[0][2], formants[0][3] )
+        #global graphModule
+        if (useTkSnack) :
+            if (self.snd.length() > self.sound_length) :
+                self.sound_pos = self.snd.length() - self.sound_length
+                formants = self.snd.formant(start=self.sound_pos,numformants=4)
+                #print(formants[0][0], formants[0][1], formants[0][2], formants[0][3] )
 
-            #audioData = [ [ formants[0][2], formants[0][3], formants[0][4] ] ]
-            #audioData = [ [ formants[0][1], formants[0][2], formants[0][3] ] ]
-            audioData = [ [ formants[0][0], formants[0][1], formants[0][2] ] ]
+                #audioData = [ [ formants[0][2], formants[0][3], formants[0][4] ] ]
+                #audioData = [ [ formants[0][1], formants[0][2], formants[0][3] ] ]
+                audioData = [ [ formants[0][0], formants[0][1], formants[0][2] ] ]
+            else :
+            # CJR [f1, f2, f3] duplicate for now - change later when Mac works
+                audioData = [
+                         [274.2, 2022.0, 3012.4], #i
+                         [268.8, 2353.4, 3420.8], #I
+                         [492.7, 2088.3, 2656.1], #E
+                         [753.9, 1619.9, 2494.4], #ae
+                         [707.6, 1027.2, 2695.7], #\as
+                         [405.6, 696.7, 2779.6], #o
+                         [360.2, 858.6,  2654.7] #u
+                         ]
         else:
         # [f1, f2, f3]
             audioData = [
@@ -211,13 +238,17 @@ class Application(tk.Frame):
         elif self.graphModule.useViz == "Triangle" :
             self.graphModule.drawWithTriangle(audioData)
 
-        if (self.snd.length(unit='sec') > 20) :
-            print("calling stop")
-            # CJR calling record as if it was clicked will stop the recording
-            # as the predetermined time.
-            self.record()
-        # CJR let's see if pausing for a second helps the jitter display
-        time.sleep(0.25)
+        if (useTkSnack) :
+            if (self.snd.length(unit='sec') > 20) :
+                print("calling stop")
+                # CJR calling record as if it was clicked will stop the recording
+                # as the predetermined time.
+                self.record()
+                 # CJR let's see if pausing for a second helps the jitter display
+            time.sleep(0.25)
+        else :
+            time.sleep(1)
+
         self.id = self.parent.after(100,self.draw())
 
     # CJR how to stop the process when the window is closed with the X
@@ -234,8 +265,13 @@ class Application(tk.Frame):
         
 def main():
     root = tk.Tk()
-    tkSnack.initializeSnack(root)
-    snd = tkSnack.Sound()
+    if (useTkSnack) :
+        print("using TkSnack")
+        tkSnack.initializeSnack(root)
+        snd = tkSnack.Sound()
+    else :
+        print("not using TkSnack")
+        snd = None
     width = 800
     height = 700
     # ("<width>x<height>+<xcoords>+<ycoords>")
