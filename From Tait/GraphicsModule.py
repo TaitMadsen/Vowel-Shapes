@@ -10,9 +10,9 @@ from Graph import *
 
 class GraphicsModule:
 
-    def __init__(self, appParent, viz="Graph", defVowel="i", defFormants = [ [274.2, 2022.0, 3012.4] ]):
+    def __init__(self, appWindow, viz="Graph", defVowel="i", defFormants = [ [274.2, 2022.0, 3012.4] ]):
         #self.window = GraphWin('Vowel Shapes', width=w, height=h)
-        self.window = appParent
+        self.window = appWindow
 
         # set the coordinates for the lower left and upper right corners
         #self.window.setCoords(0, 0, 100, 75)
@@ -64,8 +64,8 @@ class GraphicsModule:
                 self.o = self.createOval( self.originViz, 25, bx, by)
                 self.o.draw(self.window)
 
-            print("f1: %s\nf2: %s\nf3: %s" % (d[0], d[1], d[2]) )
-            print("bx: %s\nby: %s\n" % (bx, by) )
+            #print("f1: %s\nf2: %s\nf3: %s" % (d[0], d[1], d[2]) )
+            #print("bx: %s\nby: %s\n" % (bx, by) )
             #time.sleep(1)
 
     def drawWithTriangle(self, audioData):
@@ -175,12 +175,12 @@ class GraphicsModule:
     def axesDraw(self):
         # draw the X axis
         startAxis = Point(0, self.originViz.getY())
-        endAxis = Point(self.window.getHeight(), self.originViz.getY())
+        endAxis = Point(self.window.width, self.originViz.getY())
         Line(startAxis, endAxis).draw(self.window)
 
         # draw the Y axis
         startAxis = Point(self.originViz.getX(), 0)
-        endAxis = Point(self.originViz.getX(), self.window.getWidth())
+        endAxis = Point(self.originViz.getX(), self.window.height)
         Line(startAxis, endAxis).draw(self.window)
 
 

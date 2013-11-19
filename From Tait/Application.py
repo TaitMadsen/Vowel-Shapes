@@ -5,9 +5,12 @@ import time
 import TBMGraphics as g
 from Graph import *
 import tkinter as tk
+from tkinter import filedialog  # CJR Windows needed this import
 import tkSnack as tkSnack
-import GraphicsModule as gModule
+from GraphicsModule import *
+from VowelShapeConfig import *
 import sys
+
 
 class Application(tk.Frame):
     def __init__(self, parent, sound, width, height):
@@ -21,15 +24,6 @@ class Application(tk.Frame):
         self.sound_length = 1024
         self.sound_pos = 0
         self.id = None
-        # read the configuration file
-        self.defaultSetup = self.readConfiguration("./vowelShapeConfig.txt")
-        #initialize the graphics module
-        self.graphModule = GraphicsModule(parent, defaultSetup.useViz, defaultSetup.defVowel, defaultSetup.defFormants)
-        if self.graphModule.originViz :
-            self.graphModule.axesDraw()
-        if (defaultSetup.mode == "Practice") :
-            self.graphModule.drawMatchingViz(defaultSetup.defFormants)
-
         # Dimensions
         self.width = width
         self.height = height
@@ -62,6 +56,24 @@ class Application(tk.Frame):
         # Vowel objects
         self.exampleVowel = None
         self.activeVowel = None
+
+        # CJR
+        # options for the file dialogs
+        self.save_file_opt = options = {}
+        options['filetypes'] = [('all files', '.*'), ('audio files', '.mp3')]
+        options['initialfile'] = 'myfile_i.mp3'
+        options['parent'] = self.parent
+
+        # read the application configuration file
+        self.defaultSetup = self.readConfiguration("./vowelShapeConfig.txt")
+        #initialize the graphics module
+        self.graphModule = GraphicsModule(self.graphWin, self.defaultSetup.viz,
+                                        self.defaultSetup.defVowel, self.defaultSetup.defFormants)
+        if self.graphModule.originViz :
+            self.graphModule.axesDraw()
+        if (self.defaultSetup.mode == "Practice") :
+            self.graphModule.drawMatchingViz(self.defaultSetup.defFormants)
+
     
     
     def setupCanvas(self):
@@ -77,6 +89,7 @@ class Application(tk.Frame):
         fileMenu.add_command(label="Save Vowel", command=self.saveVowel)
         fileMenu.add_command(label="Load Vowel", command=self.loadVowel)
         fileMenu.add_command(label="Clear Vowel", command=self.clearVowel)
+        fileMenu.add_command(label="Exit", command=self.exitApp)  # CJR added an exit function
 
         self.menubar.add_cascade(label="File", menu=fileMenu)
     
@@ -99,8 +112,24 @@ class Application(tk.Frame):
 
     # menu commands
     def saveVowel(self):
-        path = tk.filedialog.asksaveasfilename()
-        self.activeVowel.saveToFile(path)
+        #path = tk.filedialog.asksaveasfilename()
+        # CJR Windows needed this form with the import at the start of the file
+        filename = filedialog.asksaveasfilename()
+        print(filename)
+        if (filename) :
+            if (self.snd.length() > 0) :
+                fileSave = open(filename, 'w')
+                # CJR I left this alone because it looks like you are
+                # planning a activeVowel class - except to add the sound object
+                #
+                #self.activeVowel.saveToFile(fileSave, self.snd)
+                self.snd.save
+                fileSave.close()
+            else :
+                # this was just for testing
+                fileTest = open(filename, 'w')
+                fileTest.write("test\n")
+                fileTest.close()
 
     def loadVowel(self):
         path = tk.filedialog.askopenfilename()
@@ -108,6 +137,12 @@ class Application(tk.Frame):
     
     def clearVowel(self):
         self.exampleVowel = None
+
+    # CJR added an exit function
+    def exitApp(self):
+        # CJR how do we exit a Tcl application cleanly?
+        self.parent.destroy()
+        self.parent.quit()
 
     def help(self):
         #nothing yet
@@ -119,18 +154,23 @@ class Application(tk.Frame):
 
     # Button commands
     def record(self):
-        if self.recordButton["text"] == "Record":
+        print("in the record method ", self.id)
+        if (self.recordButton["text"] == "Record") :
+            print ("Record")
             self.recordButton.config(text="Stop")
             self.playButton.config(state=tk.DISABLED)
             # CJR add in the tkSnack commands to start the recording
             self.snd.record()
             self.id = self.parent.after(100,self.draw())
         else:
+            print("Stop")
             self.recordButton.config(text="Record")
             self.playButton.config(state=tk.NORMAL)
             # CJR add in the tkSnack commands to stop the recording
             self.snd.stop()
+            print("stop the id object:", self.id)
             self.parent.after_cancel(self.id)
+        print("exiting the record method ", id)
 
     def play(self):
         if self.playButton["text"] == "Play":
@@ -141,17 +181,17 @@ class Application(tk.Frame):
             self.recordButton.config(state=tk.NORMAL)
 
 
-    # CJR setup and drawing methods
+    # CJR window methods
     def draw(self):
         global graphModule
         if (self.snd.length() > self.sound_length) :
             self.sound_pos = self.snd.length() - self.sound_length
             formants = self.snd.formant(start=self.sound_pos,numformants=4)
-            print(formants[0][0], formants[0][1], formants[0][2], formants[0][3] )
+            #print(formants[0][0], formants[0][1], formants[0][2], formants[0][3] )
 
             #audioData = [ [ formants[0][2], formants[0][3], formants[0][4] ] ]
-            audioData = [ [ formants[0][1], formants[0][2], formants[0][3] ] ]
-            #audioData = [ [ formants[0][0], formants[0][1], formants[0][2] ] ]
+            #audioData = [ [ formants[0][1], formants[0][2], formants[0][3] ] ]
+            audioData = [ [ formants[0][0], formants[0][1], formants[0][2] ] ]
         else:
         # [f1, f2, f3]
             audioData = [
@@ -164,30 +204,35 @@ class Application(tk.Frame):
                          [360.2, 858.6,  2654.7] #u
                          ]
 
-        if graphModule.useViz == "Graph" :
-            graphModule.drawWithGraph(audioData)
-        elif graphModule.useViz == "Oval" :
-            graphModule.drawWithOval(audioData)
-        elif graphModule.useViz == "Triangle" :
-            graphModule.drawWithTriangle(audioData)
+        if self.graphModule.useViz == "Graph" :
+            self.graphModule.drawWithGraph(audioData)
+        elif self.graphModule.useViz == "Oval" :
+            self.graphModule.drawWithOval(audioData)
+        elif self.graphModule.useViz == "Triangle" :
+            self.graphModule.drawWithTriangle(audioData)
 
-        if (snd.length(unit='sec') > 20) :
+        if (self.snd.length(unit='sec') > 20) :
             print("calling stop")
             # CJR calling record as if it was clicked will stop the recording
             # as the predetermined time.
             self.record()
         # CJR let's see if pausing for a second helps the jitter display
-        time.sleep(1)
+        time.sleep(0.25)
         self.id = self.parent.after(100,self.draw())
 
-    def readConfiguration(filename):
+    # CJR how to stop the process when the window is closed with the X
+    def close(self):
+        self.parent.quit()
+
+    # CJR application setup and configuration methods.
+    def readConfiguration(self, filename):
         configVars = VowelShapeConfig(filename)
-        print(configVars.viz, configVars.mode)
-        print(configVars.defFormants, configVars.defVowel)
+        #print(configVars.viz, configVars.mode)
+        #print(configVars.defFormants, configVars.defVowel)
         return configVars
 
+        
 def main():
-    
     root = tk.Tk()
     tkSnack.initializeSnack(root)
     snd = tkSnack.Sound()
@@ -196,6 +241,8 @@ def main():
     # ("<width>x<height>+<xcoords>+<ycoords>")
     root.geometry("%sx%s+80+70" % (width, height) )
     app = Application(root, snd, width, height)
+    # CJR testing to see if this will stop the proces on X window closure
+    root.protocol('WM_DELETE_WINDOW', app.exitApp)
     root.mainloop()
 
 main()
