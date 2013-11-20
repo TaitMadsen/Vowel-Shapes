@@ -6,12 +6,13 @@ import TBMGraphics as g
 from Graph import *
 import tkinter as tk
 from tkinter import filedialog  # CJR Windows needed this import
-#import tkSnack as tkSnack
+import tkSnack as tkSnack
 from GraphicsModule import *
 from VowelShapeConfig import *
 import sys
 
-useTkSnack = False
+#useTkSnack = False
+useTkSnack = True
 id = None
 
 class Application(tk.Frame):
@@ -163,9 +164,9 @@ class Application(tk.Frame):
             # CJR add in the tkSnack commands to start the recording
             if (useTkSnack) :
                 self.snd.record()
-            self.id = self.parent.after(100,self.draw())
+            #self.id = self.parent.after(100,self.draw())
             #else:
-            #    self.start()
+            self.start()
         else:
             print("Stop")
             self.recordButton.config(text="Record")
@@ -173,19 +174,16 @@ class Application(tk.Frame):
             # CJR add in the tkSnack commands to stop the recording
             if (useTkSnack) :
                 self.snd.stop()
-            print("stop the id object:", self.id)
-            self.parent.after_cancel(self.id)
+            #self.parent.after_cancel(self.id)
             #else:
-            #    self.stop()
+            self.stop()
         print("exiting the record method ", self.id)
 
     def start(self):
-        global id
-        id = self.parent.after(100,self.draw())
+        self.id = self.parent.after(100,self.draw)
 
     def stop(self):
-        global id
-        self.parent.after_cancel(id)
+        self.parent.after_cancel(self.id)
 
     def play(self):
         if self.playButton["text"] == "Play":
@@ -198,7 +196,7 @@ class Application(tk.Frame):
 
     # CJR window methods
     def draw(self):
-        #global graphModule
+        print("draw ", self.id)
         if (useTkSnack) :
             if (self.snd.length() > self.sound_length) :
                 self.sound_pos = self.snd.length() - self.sound_length
@@ -249,7 +247,7 @@ class Application(tk.Frame):
         else :
             time.sleep(1)
 
-        self.id = self.parent.after(100,self.draw())
+        self.id = self.parent.after(100,self.draw)
 
     # CJR how to stop the process when the window is closed with the X
     def close(self):
