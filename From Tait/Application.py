@@ -43,6 +43,7 @@ class Application(tk.Frame):
         self.setupFileMenu()
         self.setupActionMenu()
         self.setupHelpMenu()
+        self.setupDemoMenu()
 
         # from the tkSnack demo files
         #Button(f, bitmap='snackRecord', fg='red', command=start).pack(side='left')
@@ -77,6 +78,10 @@ class Application(tk.Frame):
         if (self.defaultSetup.mode == "Practice") :
             self.graphModule.drawMatchingViz(self.defaultSetup.defFormants)
 
+        # Demo matching vowel
+        self.matchVowel = tk.Label(self.parent, text=self.defaultSetup.defVowel)
+        self.matchVowel.grid(column=1, row=2)
+
     
     
     def setupCanvas(self):
@@ -109,9 +114,19 @@ class Application(tk.Frame):
         helpMenu.add_command(label="Help", command=self.help)
     
         self.menubar.add_cascade(label="Help", menu=helpMenu)
+    # only for the Demo
+    def setupDemoMenu(self):
+        demoMenu = tk.Menu(self.menubar)
 
+        demoMenu.add_command(label="i", command=self.loadi)
+        demoMenu.add_command(label="I", command=self.loadI)
+        demoMenu.add_command(label="E", command=self.loadE)
+        demoMenu.add_command(label="ae", command=self.loadae)
+        demoMenu.add_command(label="as", command=self.loadas)
+        demoMenu.add_command(label="o", command=self.loado)
+        demoMenu.add_command(label="u", command=self.loadu)
 
-
+        self.menubar.add_cascade(label="Demo", menu=demoMenu)
 
     # menu commands
     def saveVowel(self):
@@ -149,6 +164,43 @@ class Application(tk.Frame):
     def help(self):
         #nothing yet
         return
+
+    # demo changing of the matching vowel
+    def loadi(self):
+        formants = [ [274.2, 2022.0, 3012.4] ]
+        self.matchVowel.config(text="i")
+        self.graphModule.drawMatchingViz(formants)
+
+    def loadI(self):
+        formants = [ [268.8, 2353.4, 3420.8] ]
+        self.matchVowel.config(text="I")
+        self.graphModule.drawMatchingViz(formants)
+
+    def loadE(self):
+        formants = [ [492.7, 2088.3, 2656.1] ]
+        self.matchVowel.config(text="E")
+        self.graphModule.drawMatchingViz(formants)
+
+    def loadae(self):
+        formants = [ [753.9, 1619.9, 2494.4] ]
+        self.matchVowel.config(text="ae")
+        self.graphModule.drawMatchingViz(formants)
+
+    def loadas(self):
+        formants = [ [707.6, 1027.2, 2695.7] ]
+        self.matchVowel.config(text="as")
+        self.graphModule.drawMatchingViz(formants)
+
+    def loado(self):
+        formants = [ [405.6, 696.7, 2779.6] ]
+        self.matchVowel.config(text="o")
+        self.graphModule.drawMatchingViz(formants)
+
+    def loadu(self):
+        formants = [ [360.2, 858.6,  2654.7] ] 
+        self.matchVowel.config(text="u")
+        self.graphModule.drawMatchingViz(formants)
+
 
     def testCanvas(self):
         box = g.Rectangle( Point(1,1), Point(99,74))

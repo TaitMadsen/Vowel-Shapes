@@ -40,6 +40,9 @@ class GraphicsModule:
 
     def drawMatchingViz(self, formant):
         self.drawMatching = True
+        if self.m :
+            self.m.undraw()
+
         if self.useViz == "Graph" :
             self.drawWithGraph(formant)
         elif self.useViz == "Oval" :
