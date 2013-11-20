@@ -201,11 +201,11 @@ class Application(tk.Frame):
             if (self.snd.length() > self.sound_length) :
                 self.sound_pos = self.snd.length() - self.sound_length
                 formants = self.snd.formant(start=self.sound_pos,numformants=4)
-                #print(formants[0][0], formants[0][1], formants[0][2], formants[0][3] )
-
-                #audioData = [ [ formants[0][2], formants[0][3], formants[0][4] ] ]
-                #audioData = [ [ formants[0][1], formants[0][2], formants[0][3] ] ]
-                audioData = [ [ formants[0][0], formants[0][1], formants[0][2] ] ]
+                print(formants[0][0], formants[0][1], formants[0][2], formants[0][3] )
+                fSum = [ sum(x) for x in zip(*formants) ]
+                fLength = len(formants)
+                fAvg = [x/fLength for x in fSum]
+                audioData = [ [ fAvg[0], fAvg[1], fAvg[2] ] ]
             else :
             # CJR [f1, f2, f3] duplicate for now - change later when Mac works
                 audioData = [
