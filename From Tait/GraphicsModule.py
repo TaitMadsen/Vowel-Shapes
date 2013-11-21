@@ -190,14 +190,6 @@ class GraphicsModule:
             self.xA.undraw()
         if self.yA :
             self.yA.undraw()
-        if self.m :
-            self.m.undraw()
-        if self.o :
-            self.o.undraw()
-        if self.t :
-            self.t.undraw()
-        if self.p :
-            self.p.undraw()
 
         # set the visualization for the module
         self.useViz = viz
@@ -208,6 +200,17 @@ class GraphicsModule:
             self.originViz = Point(40, 10)
         elif self.useViz == "Oval" :
             self.originViz = Point(50, 37)
+
+    # undraw all the possible vowel representations
+    def unDrawVowels(self):
+        if self.m :
+            self.m.undraw()
+        if self.o :
+            self.o.undraw()
+        if self.t :
+            self.t.undraw()
+        if self.p :
+            self.p.undraw()
 
     def setVowelInfo(self, defV, defF):
         self.vowel = defV

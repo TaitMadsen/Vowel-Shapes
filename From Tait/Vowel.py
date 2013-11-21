@@ -4,9 +4,11 @@ class Vowel:
     def __init__(self, f1, f2, f3, fileName):
         
         # Check to see if the f's are all 0, and a fileName exists
+        # CJR - how to we monitor and capture "bad" file formants
+        # for a vowel? Do we need to do this for the final prototyp?
         if f1 == 0 and f2 == 0 and f3 == 0 and fileName != '':
             # Load the file
-            self.loadFromFile()
+            self.loadFromFile(fileName)
         else:
             self.f1 = f1
             self.f2 = f2
@@ -32,6 +34,10 @@ class Vowel:
     def getAnnotation(self):
         return self.annotation
     
+    # This setter method takes a list of the first 3 formants, and then normalizes them to get bx and by
+    def getF(self):
+        return [ [self.f1, self.f2, self.f3 ] ]
+
     # Setter methods
     def setAnnotation(self, anno):
         self.annotation = anno
