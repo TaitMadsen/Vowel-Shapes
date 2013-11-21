@@ -43,7 +43,8 @@ class Application(tk.Frame):
         self.setupFileMenu()
         self.setupActionMenu()
         self.setupHelpMenu()
-        self.setupDemoMenu()
+        self.setupDemoVowelMenu()
+        self.setupDemoVizMenu()
 
         # from the tkSnack demo files
         #Button(f, bitmap='snackRecord', fg='red', command=start).pack(side='left')
@@ -73,10 +74,7 @@ class Application(tk.Frame):
         #initialize the graphics module
         self.graphModule = GraphicsModule(self.graphWin, self.defaultSetup.viz,
                                         self.defaultSetup.defVowel, self.defaultSetup.defFormants)
-        if self.graphModule.originViz :
-            self.graphModule.axesDraw()
-        if (self.defaultSetup.mode == "Practice") :
-            self.graphModule.drawMatchingViz(self.defaultSetup.defFormants)
+        self.setupGraph(self.defaultSetup.viz)
 
         # Demo matching vowel
         self.matchVowel = tk.Label(self.parent, text=self.defaultSetup.defVowel)
@@ -114,8 +112,9 @@ class Application(tk.Frame):
         helpMenu.add_command(label="Help", command=self.help)
     
         self.menubar.add_cascade(label="Help", menu=helpMenu)
-    # only for the Demo
-    def setupDemoMenu(self):
+
+    # only for the Demo - Vowels and Viza
+    def setupDemoVowelMenu(self):
         demoMenu = tk.Menu(self.menubar)
 
         demoMenu.add_command(label="i", command=self.loadi)
@@ -126,7 +125,16 @@ class Application(tk.Frame):
         demoMenu.add_command(label="o", command=self.loado)
         demoMenu.add_command(label="u", command=self.loadu)
 
-        self.menubar.add_cascade(label="Demo", menu=demoMenu)
+        self.menubar.add_cascade(label="Vowel", menu=demoMenu)
+
+    def setupDemoVizMenu(self):
+        demovizMenu = tk.Menu(self.menubar)
+
+        demovizMenu.add_command(label="Graph", command=self.doGraph)
+        demovizMenu.add_command(label="Triangle", command=self.doTriangle)
+        demovizMenu.add_command(label="Oval", command=self.doOval)
+
+        self.menubar.add_cascade(label="Viz", menu=demovizMenu)
 
     # menu commands
     def saveVowel(self):
@@ -165,41 +173,66 @@ class Application(tk.Frame):
         #nothing yet
         return
 
+    # demo only - viz and vowel
     # demo changing of the matching vowel
     def loadi(self):
         formants = [ [274.2, 2022.0, 3012.4] ]
-        self.matchVowel.config(text="i")
+        self.defaultSetup.defFormants = formants
+        self.defaultSetup.defVowel = "i"
+        self.matchVowel.config(text=self.defaultSetup.defVowel)
         self.graphModule.drawMatchingViz(formants)
 
     def loadI(self):
         formants = [ [268.8, 2353.4, 3420.8] ]
-        self.matchVowel.config(text="I")
+        self.defaultSetup.defFormants = formants
+        self.defaultSetup.defVowel = "I"
+        self.matchVowel.config(text=self.defaultSetup.defVowel)
         self.graphModule.drawMatchingViz(formants)
 
     def loadE(self):
         formants = [ [492.7, 2088.3, 2656.1] ]
-        self.matchVowel.config(text="E")
+        self.defaultSetup.defFormants = formants
+        self.defaultSetup.defVowel = "E"
+        self.matchVowel.config(text=self.defaultSetup.defVowel)
         self.graphModule.drawMatchingViz(formants)
 
     def loadae(self):
         formants = [ [753.9, 1619.9, 2494.4] ]
-        self.matchVowel.config(text="ae")
+        self.defaultSetup.defFormants = formants
+        self.defaultSetup.defVowel = "ae"
+        self.matchVowel.config(text=self.defaultSetup.defVowel)
         self.graphModule.drawMatchingViz(formants)
 
     def loadas(self):
         formants = [ [707.6, 1027.2, 2695.7] ]
-        self.matchVowel.config(text="as")
+        self.defaultSetup.defFormants = formants
+        self.defaultSetup.defVowel = "as"
+        self.matchVowel.config(text=self.defaultSetup.defVowel)
         self.graphModule.drawMatchingViz(formants)
 
     def loado(self):
         formants = [ [405.6, 696.7, 2779.6] ]
-        self.matchVowel.config(text="o")
+        self.defaultSetup.defFormants = formants
+        self.defaultSetup.defVowel = "o"
+        self.matchVowel.config(text=self.defaultSetup.defVowel)
         self.graphModule.drawMatchingViz(formants)
 
     def loadu(self):
         formants = [ [360.2, 858.6,  2654.7] ] 
-        self.matchVowel.config(text="u")
+        self.defaultSetup.defFormants = formants
+        self.defaultSetup.defVowel = "u"
+        self.matchVowel.config(text=self.defaultSetup.defVowel)
         self.graphModule.drawMatchingViz(formants)
+
+    # for demo vizs
+    def doGraph(self):
+        self.setupGraph("Graph")
+
+    def doTriangle(self):
+        self.setupGraph("Triangle")
+
+    def doOval(self):
+        self.setupGraph("Oval")
 
 
     def testCanvas(self):
@@ -304,6 +337,14 @@ class Application(tk.Frame):
     # CJR how to stop the process when the window is closed with the X
     def close(self):
         self.parent.quit()
+
+    # CJR undraw and draw the new configuration
+    def setupGraph(self, viz):
+        self.graphModule.reDraw(viz)
+        if self.graphModule.originViz :
+            self.graphModule.axesDraw()
+        if (self.defaultSetup.mode == "Practice") :
+            self.graphModule.drawMatchingViz(self.defaultSetup.defFormants)
 
     # CJR application setup and configuration methods.
     def readConfiguration(self, filename):

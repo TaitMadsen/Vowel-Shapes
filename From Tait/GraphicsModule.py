@@ -23,20 +23,16 @@ class GraphicsModule:
         self.p = None
         self.m = None # the matching draw viz if Practive mode
 
-        # set the visualization for the module
-        self.useViz = viz
-        self.originViz = None
+        # initializa thegraph object and axis lines to none
+        self.xA = None
+        self.yA = None
+        self.graph = None
 
-        # set the origins for the Triangle and Oval visualizations
-        if self.useViz == "Triangle" :
-            self.originViz = Point(40, 10)
-        elif self.useViz == "Oval" :
-            self.originViz = Point(50, 37)
+        # setup the canvas
+        self.reDraw(viz)
 
         # set the baseline vowel by character and baseline for practice mode
-        self.vowel = defVowel
-        self.audioFormants = defFormants
-        self.drawMatching = False
+        self.setVowelInfo(defVowel, defFormants)
 
     def drawMatchingViz(self, formant):
         self.drawMatching = True
@@ -90,9 +86,11 @@ class GraphicsModule:
             #time.sleep(1)
 
     def drawWithGraph(self, audioData):
-        #global p
-        graph = Graph( Point(75, 50), 50)
-        graph.draw(self.window)
+        #undraw the previous graph if any
+        if self.graph :
+            self.graph.undrawAxis()
+        self.graph = Graph( Point(75, 50), 50)
+        self.graph.draw(self.window)
         #p = None
         for d in audioData:
             if self.p:
@@ -103,12 +101,12 @@ class GraphicsModule:
             # change the color if drawing the matching vowel point
             # then save it and return p to None
             if (self.drawMatching) :
-                self.m =  graph.createPoint(bx, by)
+                self.m =  self.graph.createPoint(bx, by)
                 self.m.setFill('green')
                 self.m.setOutline('green')
                 self.m.draw(self.window)
             else :
-                self.p =  graph.createPoint(bx, by)
+                self.p =  self.graph.createPoint(bx, by)
                 self.p.draw(self.window)
             #time.sleep(1)
 
@@ -176,16 +174,45 @@ class GraphicsModule:
         return bX, bY
 
     def axesDraw(self):
-        # draw the X axis
-        startAxis = Point(0, self.originViz.getY())
-        endAxis = Point(self.window.width, self.originViz.getY())
-        Line(startAxis, endAxis).draw(self.window)
+        # Draw the x and y axes for the triangle and oval
+        self.xA = Line(Point(0, self.originViz.getY()), Point(self.window.width, self.originViz.getY()))
+        self.xA.draw(self.window)
 
-        # draw the Y axis
-        startAxis = Point(self.originViz.getX(), 0)
-        endAxis = Point(self.originViz.getX(), self.window.height)
-        Line(startAxis, endAxis).draw(self.window)
+        self.yA = Line(Point(self.originViz.getX(), 0), Point(self.originViz.getX(), self.window.height))
+        self.yA.draw(self.window)
 
+    def reDraw(self, viz):
+        # first clean off the canvas of any previous drawing
+        if self.graph :
+            self.graph.undrawAxis()
+            self.graph = None
+        if self.xA :
+            self.xA.undraw()
+        if self.yA :
+            self.yA.undraw()
+        if self.m :
+            self.m.undraw()
+        if self.o :
+            self.o.undraw()
+        if self.t :
+            self.t.undraw()
+        if self.p :
+            self.p.undraw()
+
+        # set the visualization for the module
+        self.useViz = viz
+        self.originViz = None
+
+        # next setup the vizualization orgin parameters
+        if self.useViz == "Triangle" :
+            self.originViz = Point(40, 10)
+        elif self.useViz == "Oval" :
+            self.originViz = Point(50, 37)
+
+    def setVowelInfo(self, defV, defF):
+        self.vowel = defV
+        self.audioFormants = defF
+        self.drawMatching = False
 
     
 

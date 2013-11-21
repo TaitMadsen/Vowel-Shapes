@@ -15,6 +15,12 @@ class Graph:
         self.xAxis.draw(window)
         self.yAxis.draw(window)
 
+    def undrawAxis(self):
+        if self.xAxis :
+            self.xAxis.undraw()
+        if self.yAxis :
+            self.yAxis.undraw()
+
     def createPoint(self, bx, by):
         x = self.origin.getX() - bx/(self.q)
         y = self.origin.getY() - by/(self.q)
