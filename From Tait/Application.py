@@ -45,9 +45,9 @@ class Application(tk.Frame):
         # The menus
         self.setupFileMenu()
         self.setupActionMenu()
-        self.setupHelpMenu()
         self.setupDemoVowelMenu()
         self.setupDemoVizMenu()
+        self.setupHelpMenu()
 
         # from the tkSnack demo files
         #Button(f, bitmap='snackRecord', fg='red', command=start).pack(side='left')
@@ -102,9 +102,11 @@ class Application(tk.Frame):
         
 
     # Menus
+    
     def setupFileMenu(self):
         fileMenu = tk.Menu(self.menubar)
         
+        fileMenu.add_command(label="About", command=self.showAbout)
         fileMenu.add_command(label="Save Vowel", command=self.saveVowel)
         fileMenu.add_command(label="Load Vowel", command=self.loadVowel)
         fileMenu.add_command(label="Clear Vowel", command=self.clearVowel)
@@ -121,12 +123,12 @@ class Application(tk.Frame):
         actionMenu.add_command(label="Practice", command = self.practiceMode)
         actionMenu.add_command(label="Review", command = self.reviewMode)
     
-        self.menubar.add_cascade(label="Action", menu = actionMenu)
+        self.menubar.add_cascade(label="Mode", menu = actionMenu)
     
     def setupHelpMenu(self):
         helpMenu = tk.Menu(self.menubar)
     
-        helpMenu.add_command(label="Help", command=self.help)
+        helpMenu.add_command(label="The Different Modes", command=self.modesHelp)
     
         self.menubar.add_cascade(label="Help", menu=helpMenu)
 
@@ -228,9 +230,16 @@ class Application(tk.Frame):
         self.parent.destroy()
         self.parent.quit()
 
-    def help(self):
-        #nothing yet
-        return
+    def modesHelp(self):
+        f = open("modesHelp.txt", "r")
+        msg = f.read()
+        self.vowelAnnotationBox(msg, False)
+    
+    def showAbout(self):
+        f = open("about.txt", "r")
+        msg = f.read()
+        # Use Cyndi's vowelAnnotationBox to display the about information
+        self.vowelAnnotationBox(msg, False)
 
     # demo only - viz and vowel
     # demo changing of the matching vowel

@@ -1,0 +1,22 @@
+The Modes
+
+Mentor Mode
+Records an audio input, and displays it on the screen.  Does not
+compare the input to a baseline.  The input can be saved to a
+location selected by the user.  This mode is intended for creating
+baseline vowels for others to strive to match.
+
+Study Mode
+Displays a baseline vowel and allows the user to listen to it.
+In this mode, the application will not accept audio input.
+
+Practice Mode
+Accepts audio input from the user, converts the audio to a vowel 
+visualization and places the visualization over the user selected 
+baseline vowel visualization. Practice mode will have an option 
+to record.
+
+Review Mode
+Allows the user to replay a previously recorded practice-session 
+vowel recording with the visualization from the practice session 
+and a selected baseline vowel.

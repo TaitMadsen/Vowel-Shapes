@@ -1,0 +1,15 @@
+The challenge of learning new vowel sounds in the context of vocal
+music has long been addressed by careful listening and mimicking
+sound. We propose to open another option, visual learning. Vowel 
+shapes is a computer application written in Python to run on both
+Macintosh and Windows computers, intended for (but not limited to)
+use by students and teachers of vocal music. The application will
+utilize the computer's microphone or one that is externally linked. 
+Using input from the microphone while the user vocalizes, the
+application will create a real-time visual representation of the vowel 
+being produced. This representation will be a graph, oval, or triangle 
+as the user prefers. The real power of this application comes in its 
+ability to save previously produced vowels, so the user may listen to
+and view them as the he or she attempts to replicate. This enables 
+teachers and the community to set exacting benchmarks for students to 
+achieve and master.
