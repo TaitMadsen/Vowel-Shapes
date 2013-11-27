@@ -2,6 +2,8 @@
 # voiceShapeConfig.py
 # configuration class for the VowelShape application
 #
+import os.path
+from Vowel import *
 
 class VowelShapeConfig:
 
@@ -16,10 +18,28 @@ class VowelShapeConfig:
         line = configFile.readline()
         self.mode = line.rstrip()
         # 3) default baseline formant - vowel and formant definition
+        #   plus wav file name if avalable
         line = configFile.readline()
         parts = line.split('$')
-        self.defVowel = eval( parts[0] )
-        self.defVowel = self.defVowel[0]
-        self.defFormants = eval( parts[1] )
+        vowelName = eval( parts[0] )
+        vowelName = vowelName[0]
+        vowelFormants = eval( parts[1] )
+        # if there is a third part it is the filename for a recording of the vowel
+        soundFile = ""
+        soundFilename = ""
+        if (len(parts) > 2) :
+            soundFile = eval( parts[2] )
+            soundFile = soundFile[0]
+            path, filename = os.path.split(soundFile)
+            soundFilename = filename
+        # create a vowel object from the vowel defaults
+        self.loadedVowel = Vowel(0,0,0,"")
+        self.loadedVowel.setF(vowelFormants[0])
+        self.loadedVowel.setAnnotation(vowelName)
+        if (len(soundFile) > 0) :
+            self.loadedVowel.setSoundFile(file, soundFile, soundFilename)
+        # set the current active vowel to none
+        # the active vowel is the vowel that the user is singing
+        self.activeVowel = None
         
 
