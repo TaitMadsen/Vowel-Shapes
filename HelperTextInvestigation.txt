@@ -1,0 +1,1 @@
+Adding helper text was investigated.  However, in order to efficiently get the normalized data of both the active vowel and the loaded vowel, the structure of the vowel analysis would have to be reworked so the vowel was normalized before being sent to different modules.  This alteration is not practical within the scope of this project.

@@ -1,0 +1,1 @@
+I have investigated implementing the vocal tract diagrams given us by Professor Ciesinski into the application.  However, technology already exists (cited in our proposal) that analyzes and displays the user’s vocal tract.  The goal of this project was to represent the sound ins tea of the shape of the user’s vocal tract.  
