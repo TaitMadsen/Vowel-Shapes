@@ -101,6 +101,7 @@ class Application(tk.Frame):
 
         # disable the Play button if there is not sound for the loaded Vowel
         self.disablePlayOnNoSound()
+            
 
     # Menus
     def setupFileMenu(self):
