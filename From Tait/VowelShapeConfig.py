@@ -32,6 +32,12 @@ class VowelShapeConfig:
             soundFile = soundFile[0]
             path, filename = os.path.split(soundFile)
             soundFilename = filename
+        # if there is a 4th line then it is the length of the moving average queue
+        line = configFile.readline()
+        self.defQueueLength = float(line.rstrip())
+        # and the final line is the tolerance for matching a vowel
+        line = configFile.readline()
+        self.defTolerance = float(line.rstrip())
         # create a vowel object from the vowel defaults
         self.loadedVowel = Vowel(0,0,0,"")
         self.loadedVowel.setF(vowelFormants[0])

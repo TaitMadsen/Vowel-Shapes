@@ -10,7 +10,8 @@ from Graph import *
 
 class GraphicsModule:
 
-    def __init__(self, appWindow, viz="Graph", defVowel="i", defFormants = [ [274.2, 2022.0, 3012.4] ]):
+    def __init__(self, appWindow, viz="Graph", defVowel="i",
+                    defFormants = [ [274.2, 2022.0, 3012.4] ], defTolerance = 0.1, defQueueSize = 25):
         #self.window = GraphWin('Vowel Shapes', width=w, height=h)
         self.window = appWindow
 
@@ -22,8 +23,14 @@ class GraphicsModule:
         self.o = None
         self.p = None
         self.m = None # the loaded draw viz if Practice mode
-        self.mby = None
-        self.mbx = None
+        self.mby = 0
+        self.mbx = 0
+        self.mArea = 0.0
+        # try using a moving average of bx and by
+        self.queueBx = []
+        self.queueBy = []
+        self.queueSize = defQueueSize
+        self.vTolerance = defTolerance
 
         # initializa the graph object and axis lines to none
         self.xA = None
@@ -43,15 +50,18 @@ class GraphicsModule:
         self.drawMatching = True
         if self.m :
             self.m.undraw()
-            self.mby = None
-            self.mbx = None
+            self.mby = 0
+            self.mbx = 0
+            self.mArea = 0.0
 
         if self.useViz == "Graph" :
             bx, by = self.drawWithGraph(formant)
         elif self.useViz == "Oval" :
             bx, by = self.drawWithOval(formant)
+            self.mArea = math.pi*(bx/2.0)*(by/2.0)
         elif self.useViz == "Triangle" :
             bx, by = self.drawWithTriangle(formant)
+            self.mArea = (bx*by)/2.0
         self.mbx = bx
         self.mby = by
         self.drawMatching = False
@@ -63,13 +73,13 @@ class GraphicsModule:
             if self.o:
                 self.o.undraw()
 
-            bx, by = self.normalize(d[0], d[1], d[2])
+            bx, by, delta = self.normalize(d[0], d[1], d[2])
             #o = createOval( Point(50, 37), 25, bx, by)
             if (self.drawMatching) :
-                self.m = self.createOval( self.originViz, 25, bx, by)
+                self.m = self.createOval( self.originViz, 25, bx, by, 10)
                 self.m.draw(self.window)
             else :
-                self.o = self.createOval( self.originViz, 25, bx, by)
+                self.o = self.createOval( self.originViz, 25, bx, by, delta)
                 self.o.draw(self.window)
             #print("Oval:", bx, by)
             return bx, by
@@ -85,13 +95,14 @@ class GraphicsModule:
             if self.t :
                 self.t.undraw()
 
-            bx, by = self.normalize(d[0], d[1], d[2])
+            bx, by, delta = self.normalize(d[0], d[1], d[2])
+            #print("bx Triangle: ", self.queueBx)
             #t = createTriangle( Point(40, 10), 70, bx, by)
             if (self.drawMatching) :
                 self.m = self.createTriangle( self.originViz, 70, bx, by)
                 self.m.draw(self.window)
             else :
-                self.t = self.createTriangle( self.originViz, 70, bx, by)
+                self.t = self.createTriangle( self.originViz, 70, bx, by, delta)
                 self.t.draw(self.window)
             #print("Triangle:", bx, by)
             return bx, by
@@ -109,24 +120,30 @@ class GraphicsModule:
             if self.p:
                 self.p.undraw()
 
-            bx, by = self.normalize(d[0], d[1], d[2])
+            bx, by, delta = self.normalize(d[0], d[1], d[2])
 
             # change the color if drawing the matching vowel point
             # then save it and return p to None
             if (self.drawMatching) :
                 self.m =  self.graph.createPoint(bx, by)
-                self.m.setFill('green')
-                self.m.setOutline('green')
+                self.m.setFill('blue')
+                self.m.setOutline('blue')
                 self.m.draw(self.window)
             else :
                 self.p =  self.graph.createPoint(bx, by)
+                if (delta < (self.vTolerance*2)) :
+                    self.p.setFill('green')
+                    self.p.setOutline('green')
+                else :
+                    self.p.setFill('red')
+                    self.p.setOutline('red')
                 self.p.draw(self.window)
             #time.sleep(1)
             #print("Graph:", bx, by)
             return bx, by
 
 
-    def createOval(self, center, size, bx, by):
+    def createOval(self, center, size, bx, by, delta = 10):
         divider1 = 4/size
         divider2 = 8/size
 
@@ -135,13 +152,16 @@ class GraphicsModule:
 
         vowel = Oval(p1, p2)
         if (self.drawMatching) :
-            vowel.setFill('green')
+            vowel.setFill('blue')
         else :
-            vowel.setFill('yellow')
+            if (delta < self.vTolerance) :
+                vowel.setFill('green')
+            else :
+                vowel.setFill('yellow')
 
         return vowel
 
-    def createTriangle(self, origin, size, bx, by):
+    def createTriangle(self, origin, size, bx, by, delta=10):
         constantSide = size/2
 
         sideMultiplier = size/7
@@ -163,10 +183,12 @@ class GraphicsModule:
         # Create the trinagle
         triangle = Polygon(origin, r, q)
         if (self.drawMatching) :
-            triangle.setFill('green')
-        else :
             triangle.setFill('blue')
-
+        else :
+            if (delta < self.vTolerance) :
+                triangle.setFill('green')
+            else :
+                triangle.setFill('yellow')
 
         return triangle
 
@@ -177,7 +199,8 @@ class GraphicsModule:
         fList = [f1, f2, f3]
         zList = [None, None, None]
         for i in range(3):
-            zList[i] = 26.81/(1 + 1960/fList[i]) -0.53
+            zList[i] = ( ( 26.81/(1 + 1960/fList[i]) ) -0.53 )  # for male
+            #zList[i] = ( ( 26.81/(1 + 1960/fList[i]) ) -0.53 ) - 1.0 for female
 
         z1 = zList[0]
         z2 = zList[1]
@@ -185,8 +208,68 @@ class GraphicsModule:
 
         bX = 10 - (z3 - z2)
         bY = (15 - (z3 - z1)) / 2
+        #bX = (z3 - z2) *0.25
+        #bY = (z3 - z1) *0.25
 
-        return bX, bY
+        # find the moving average to assist with the jitter
+        self.queueBx.append(bX)
+        self.queueBy.append(bY)
+        if (len(self.queueBx) > self.queueSize ) :
+            self.queueBx.reverse()
+            self.queueBx.pop()
+            self.queueBx.reverse()
+            self.queueBy.reverse()
+            self.queueBy.pop()
+            self.queueBy.reverse()
+        bSum = sum(self.queueBx)/len(self.queueBx)
+        bX = bSum
+        bSum = sum(self.queueBy)/len(self.queueBy)
+        bY = bSum
+
+        # calculate the delta between the current bX/bY and the match bx/by
+        if (self.useViz == "Oval") :
+            # find the area of the current ellipse
+            area = math.pi*(bX/2.0)*(bY/2.0)
+            delta = 1.0
+            if (self.mArea > 0) :
+                # should approaches 1 - want to approach 0 - so subract from 1
+                delta = abs( (1.0 - (area/self.mArea)) )
+            # find the ratio of the bx to bys - each should be 1 the difference
+            # approaches 0
+            bRatio = 1.0; bxRatio = 1.0; byRatio = 0.0
+            if (self.mbx > 0) :
+                bxRatio = 10*(bX/self.mbx)
+            if (self.mby > 0) :
+                byRatio = 10*(bY/self.mby)
+            bRatio = abs( bxRatio - byRatio )
+            # not only the area but bx and by ratio needs to approach 0
+            delta = delta*bRatio
+        elif (self.useViz == "Triangle") :
+            area = (bX*bY)/2.0
+            # should approaches 1 - want to approach 0 - so subract from 1
+            delta = 1.0
+            if (self.mArea > 0) :
+                delta = abs( (1.0 - (area/self.mArea)) )  # should approach 0 - so subract from 1
+            # find the ratio of the bx to bys - each should be 1 the difference
+            # approaches 0
+            bRatio = 1.0; bxRatio = 1.0; byRatio = 0.0
+            if (self.mbx > 0) :
+                bxRatio = 10*( math.radians(bX)/math.radians(self.mbx) )
+            if (self.mby > 0) :
+                byRatio = 10*(bY/self.mby)
+            bRatio = abs( bxRatio - byRatio )
+            # not only the area but bx and by ratio needs to approach 0
+            delta = delta*bRatio
+        else :
+            # distance betwen the points should approach 0
+            area = 0
+            delta = math.sqrt(math.pow(abs(self.mbx - bX),2) + math.pow(abs(self.mby - bY),2))
+            #print("delta: ", delta)
+        #print("mArea area: ", self.mArea, area)
+        #print("ratio xratio yratio: ", bRatio, bxRatio, byRatio)
+        #print("delta:", delta)
+
+        return bX, bY, delta
 
     def axesDraw(self):
         # Draw the x and y axes for the triangle and oval
@@ -222,15 +305,20 @@ class GraphicsModule:
             self.axesDraw()
 
     # undraw all the possible vowel representations
+    # clear any vowel information
     def unDrawVowels(self):
         if self.m :
             self.m.undraw()
+            self.mbx = 0.0
+            self.mby = 0.0
         if self.o :
             self.o.undraw()
         if self.t :
             self.t.undraw()
         if self.p :
             self.p.undraw()
+        self.queueBx = []
+        self.queueBy = []
 
 #    def setVowelInfo(self, defV, defF):
 #        self.vowel = defV

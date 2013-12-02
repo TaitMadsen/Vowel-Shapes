@@ -82,7 +82,8 @@ class Application(tk.Frame):
             application_path = os.path.dirname(__file__)
 
         # now set the default directory to load or save vowels to
-        self.vowel_path = os.path.join(application_path, "baselineFormants")
+        self.vowel_path = os.path.join(".\\", "baselineFormants")
+        print("defatul formatn dir", self.vowel_path)
 
         # set the mask for saving or loading files
         self.filemask = [
@@ -96,12 +97,14 @@ class Application(tk.Frame):
 
         #initialize the graphics module
         self.graphModule = GraphicsModule(self.graphWin, self.currentState.viz,
-                                        self.currentState.loadedVowel.getAnnotation(), self.currentState.loadedVowel.getF())
+                                        self.currentState.loadedVowel.getAnnotation(),
+                                        self.currentState.loadedVowel.getF(),
+                                        self.currentState.defTolerance,
+                                        self.currentState.defQueueLength)
         self.setupGraph(self.currentState.viz)
 
         # disable the Play button if there is not sound for the loaded Vowel
         self.disablePlayOnNoSound()
-            
 
     # Menus
     def setupFileMenu(self):
@@ -201,13 +204,20 @@ class Application(tk.Frame):
                 # as the formant file - but with a wav extention
                 sndFilename = file + ".wav"
                 #sndPath = path + "/" + sndFileName
-                sndPath = os.path.join(path, sndFilename)
+                # this would be great for a single installation - it does
+                # not work for generic installs - no time - future work CJR
+                #sndPath = os.path.join(path, sndFilename)
+                # always save the defatul directory and use a relative path
+                sndPath = os.path.join(self.vowel_path, sndFilename)
+
                 self.snd.write(sndPath)
                 self.snd.flush()
                 # set the activeVowel sound references
                 self.currentState.activeVowel.setSoundFile(sndPath, sndFilename)
                 # this saves the formant values of the last note
-                self.currentState.activeVowel.saveToFile(fileSave)
+                # save to the relative default directory - future work CJR
+                defaultFileSave = os.path.join(self.vowel_path, filename)
+                self.currentState.activeVowel.saveToFile(defaultFileSave)
         else :
             #request that the user record a vowel first
             messagebox.showinfo("Record a Vowel", "Please record a vowel.")
@@ -231,12 +241,14 @@ class Application(tk.Frame):
                 self.parent.focus_force()
                 return
             # clear the old vowel from the current state and the graph
-            self.clearVowel()
+            # CJR1 self.clearVowel()
             # set the new loaded vowel
-            self.currentState.loadedVowel = newVowel
+            # CJR1 self.currentState.loadedVowel = newVowel
             # add the vowel annotation to the Label
-            self.loadAnyVowel(self.currentState.loadedVowel.getF(), self.currentState.loadedVowel.getAnnotation(),
-                                    self.currentState.loadedVowel.getSoundFile(), self.currentState.loadedVowel.getSoundFileName())
+            #CJR1self.loadAnyVowel(self.currentState.loadedVowel.getF(), self.currentState.loadedVowel.getAnnotation(),
+            #CJR1                        self.currentState.loadedVowel.getSoundFile(), self.currentState.loadedVowel.getSoundFileName())
+            self.loadAnyVowel(newVowel.getF(), newVowel.getAnnotation(),
+                                newVowel.getSoundFile(), newVowel.getSoundFileName())
             self.parent.focus_force()
             return True # a vowel was loaded successfully
         self.parent.focus_force()
@@ -304,6 +316,7 @@ class Application(tk.Frame):
 
     # load any vowel with formant and annotation
     def loadAnyVowel(self, formantList, annotation, sndFile="", sndFilename=""):
+        self.clearVowel()
         # check if there is a loaded vowel
         if (self.currentState.loadedVowel is None) :
             self.currentState.loadedVowel = Vowel(0,0,0,'')
