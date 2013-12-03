@@ -11,7 +11,8 @@ from Graph import *
 class GraphicsModule:
 
     def __init__(self, appWindow, viz="Graph", defVowel="i",
-                    defFormants = [ [274.2, 2022.0, 3012.4] ], defTolerance = 0.1, defQueueSize = 25):
+                    defFormants = [ [274.2, 2022.0, 3012.4] ], defTolerance = 0.1,
+                    defQueueSize = 25, defGender = 1):
         #self.window = GraphWin('Vowel Shapes', width=w, height=h)
         self.window = appWindow
 
@@ -31,6 +32,8 @@ class GraphicsModule:
         self.queueBy = []
         self.queueSize = defQueueSize
         self.vTolerance = defTolerance
+        # set the default formant calculation - Female=1, Male=2
+        self.gender = defGender
 
         # initializa the graph object and axis lines to none
         self.xA = None
@@ -199,8 +202,11 @@ class GraphicsModule:
         fList = [f1, f2, f3]
         zList = [None, None, None]
         for i in range(3):
-            zList[i] = ( ( 26.81/(1 + 1960/fList[i]) ) -0.53 )  # for male
-            #zList[i] = ( ( 26.81/(1 + 1960/fList[i]) ) -0.53 ) - 1.0 for female
+            # gender Male = 2
+            if (self.gender == 2) :
+                zList[i] = ( ( 26.81/(1 + 1960/fList[i]) ) -0.53 )  # for male
+            else : # gender Female = 1
+                zList[i] = ( ( 26.81/(1 + 1960/fList[i]) ) -0.53 ) - 1.0 # for female
 
         z1 = zList[0]
         z2 = zList[1]
@@ -270,6 +276,10 @@ class GraphicsModule:
         #print("delta:", delta)
 
         return bX, bY, delta
+
+    def setGender(self, gender):
+        self.gender = gender
+        print("GraphModule Gender set to ", self.gender)
 
     def axesDraw(self):
         # Draw the x and y axes for the triangle and oval

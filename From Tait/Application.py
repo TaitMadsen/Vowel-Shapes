@@ -52,6 +52,7 @@ class Application(tk.Frame):
         self.setupActionMenu()
         self.setupDemoVowelMenu()
         self.setupDemoVizMenu()
+        self.setupGenderMenu()
         self.setupMicMenu()
         self.setupHelpMenu()
 
@@ -71,7 +72,6 @@ class Application(tk.Frame):
         self.matchVowelLabel.grid(column=1, row=2)
 
         # read the application configuration file
-        #self.defaultSetup = self.readConfiguration("./vowelShapeConfig.txt")
         self.currentState = self.readConfiguration("./vowelShapeConfig.txt")
 
         # find the application root directory
@@ -83,7 +83,7 @@ class Application(tk.Frame):
 
         # now set the default directory to load or save vowels to
         self.vowel_path = os.path.join(".\\", "baselineFormants")
-        print("defatul formatn dir", self.vowel_path)
+        print("default formant dir", self.vowel_path)
 
         # set the mask for saving or loading files
         self.filemask = [
@@ -100,8 +100,10 @@ class Application(tk.Frame):
                                         self.currentState.loadedVowel.getAnnotation(),
                                         self.currentState.loadedVowel.getF(),
                                         self.currentState.defTolerance,
-                                        self.currentState.defQueueLength)
+                                        self.currentState.defQueueLength,
+                                        self.currentState.singerGender)
         self.setupGraph(self.currentState.viz)
+        self.setSingerGender(self.currentState.singerGender) # default is 1 - Female, 2 - Male
 
         # disable the Play button if there is not sound for the loaded Vowel
         self.disablePlayOnNoSound()
@@ -158,6 +160,14 @@ class Application(tk.Frame):
 
         self.menubar.add_cascade(label="Viz", menu=demovizMenu)
 
+    def setupGenderMenu(self):
+        self.genderMenu = tk.Menu(self.menubar)
+    
+        self.genderMenu.add_radiobutton(label="Female", command=lambda index=1 : self.setSingerGender(index) )
+        self.genderMenu.add_radiobutton(label="Male",  command=lambda index=2 : self.setSingerGender(index) )
+    
+        self.menubar.add_cascade(label="Gender", menu = self.genderMenu)
+
     def setupMicMenu(self):
         micMenu = tk.Menu(self.menubar)
         if (useTkSnack) :
@@ -170,6 +180,11 @@ class Application(tk.Frame):
                 micMenu.add_radiobutton(label=mic, command=lambda index=count : self.setInputDevice(index))
                 count = count + 1
         self.menubar.add_cascade(label="Input Devices", menu=micMenu)
+
+    def setSingerGender(self, item):
+        self.currentState.singerGender = item
+        if (self.currentState.activeVowel) :
+            self.currentState.activeVowel.gender = item
 
     def setInputDevice(self, item):
         print("select ", item)
@@ -234,20 +249,15 @@ class Application(tk.Frame):
                 filetypes=self.filemask)
         if (filename) :
             # the selected file is the formant file
-            newVowel = Vowel(0,0,0, filename)
+            newVowel = Vowel(0,0,0, self.currentState.singerGender, filename)
             if (newVowel.fileLoadFailed) :
                 # the file failed to load - report a problem
                 messagebox.showinfo("Error loading Vowel"," There was an error loading the vowel file.\n Please select a different file.")
                 self.parent.focus_force()
                 return
-            # clear the old vowel from the current state and the graph
-            # CJR1 self.clearVowel()
-            # set the new loaded vowel
-            # CJR1 self.currentState.loadedVowel = newVowel
-            # add the vowel annotation to the Label
-            #CJR1self.loadAnyVowel(self.currentState.loadedVowel.getF(), self.currentState.loadedVowel.getAnnotation(),
-            #CJR1                        self.currentState.loadedVowel.getSoundFile(), self.currentState.loadedVowel.getSoundFileName())
-            self.loadAnyVowel(newVowel.getF(), newVowel.getAnnotation(),
+            #self.loadAnyVowel(self.currentState.loadedVowel.getF(), self.currentState.loadedVowel.getAnnotation(),
+            #                        self.currentState.loadedVowel.getSoundFile(), self.currentState.loadedVowel.getSoundFileName())
+            self.loadAnyVowel(newVowel.getF(), newVowel.getAnnotation(), newVowel.gender,
                                 newVowel.getSoundFile(), newVowel.getSoundFileName())
             self.parent.focus_force()
             return True # a vowel was loaded successfully
@@ -257,6 +267,7 @@ class Application(tk.Frame):
     def clearVowel(self):
         # set the currentState to have no loaded vowel
         self.currentState.loadedVowel = None
+        self.currentState.activeVowel = None
         # enable both record and play
         self.recordButton.config(state=tk.NORMAL)
         self.playButton.config(state=tk.NORMAL)
@@ -288,38 +299,38 @@ class Application(tk.Frame):
     # this will do for now.
     def loadi(self):
         formants = [ [274.2, 2022.0, 3012.4] ]
-        self.loadAnyVowel(formants, "i")
+        self.loadAnyVowel(formants, "i", self.currentState.singerGender)
 
     def loadI(self):
         formants = [ [268.8, 2353.4, 3420.8] ]
-        self.loadAnyVowel(formants, "I")
+        self.loadAnyVowel(formants, "I", self.currentState.singerGender)
 
     def loadE(self):
         formants = [ [492.7, 2088.3, 2656.1] ]
-        self.loadAnyVowel(formants, "E")
+        self.loadAnyVowel(formants, "E", self.currentState.singerGender)
 
     def loadae(self):
         formants = [ [753.9, 1619.9, 2494.4] ]
-        self.loadAnyVowel(formants, "ae")
+        self.loadAnyVowel(formants, "ae", self.currentState.singerGender)
 
     def loadas(self):
         formants = [ [707.6, 1027.2, 2695.7] ]
-        self.loadAnyVowel(formants, "as")
+        self.loadAnyVowel(formants, "as", self.currentState.singerGender)
 
     def loado(self):
         formants = [ [405.6, 696.7, 2779.6] ]
-        self.loadAnyVowel(formants, "o")
+        self.loadAnyVowel(formants, "o", self.currentState.singerGender)
 
     def loadu(self):
         formants = [ [360.2, 858.6,  2654.7] ]
-        self.loadAnyVowel(formants, "u")
+        self.loadAnyVowel(formants, "u", self.currentState.singerGender)
 
     # load any vowel with formant and annotation
-    def loadAnyVowel(self, formantList, annotation, sndFile="", sndFilename=""):
+    def loadAnyVowel(self, formantList, annotation, gender, sndFile="", sndFilename=""):
+        # this clears the loadedVowel
         self.clearVowel()
-        # check if there is a loaded vowel
-        if (self.currentState.loadedVowel is None) :
-            self.currentState.loadedVowel = Vowel(0,0,0,'')
+        # build the new loaded vowel
+        self.currentState.loadedVowel = Vowel(0,0,0, gender,'')
         # change the current vowel state to these vowel parameters
         self.currentState.loadedVowel.setF(formantList[0])
         self.currentState.loadedVowel.setAnnotation(annotation)
@@ -327,6 +338,7 @@ class Application(tk.Frame):
         # disable or enable the play button based on sound available
         self.disablePlayOnNoSound()
         self.matchVowelLabel.config(text=self.currentState.loadedVowel.getAnnotation())
+        self.graphModule.setGender(self.currentState.loadedVowel.gender)
         self.graphModule.drawMatchingViz(self.currentState.loadedVowel.getF())
 
     # for demo vizs menu items
@@ -347,16 +359,16 @@ class Application(tk.Frame):
         if (self.currentState.loadedVowel is None) :
             # no sample vowel let the user know to do this first
             loadVowel = messagebox.askyesno("Need to Load Vowel", "Practice Mode requires a vowel to be loaded.\n Do you want to load a vowel?")
-            print("Load Vowel?", loadVowel)
+            #print("Load Vowel?", loadVowel)
             if (loadVowel == False) :
                 # user does not want to continue - return focus to parent and return
                 self.parent.focus_force()
                 # CJR this is broken - if the selection fails keep the check next
                 # to the previous mode - don't have time to fix
-                print("current:", self._currentMode.get()," last:", self.lastMode)
+                #print("current:", self._currentMode.get()," last:", self.lastMode)
                 self._currentMode.set(self.lastMode)
                 self.parent.update_idletasks() # to make sure that the geometry is set
-                print("current:", self._currentMode.get()," last:", self.lastMode)
+                #print("current:", self._currentMode.get()," last:", self.lastMode)
                 return
             # let the user load the vowel then come back here and doe
             # the remainder of the practice mode actions
@@ -441,12 +453,13 @@ class Application(tk.Frame):
             self.recordButton.config(text="Stop")
             self.playButton.config(state=tk.DISABLED)
             # initialize the activeVowel
-            self.currentState.activeVowel = Vowel(10,10,10,"")
+            self.currentState.activeVowel = Vowel(10,10,10, self.currentState.singerGender, "")
             # CJR add in the tkSnack commands to start the recording
             if (useTkSnack) :
                 self.snd.flush()
                 self.snd.record()
             #self.startRecord()
+            self.graphModule.setGender(self.currentState.activeVowel.gender)
             self.id = self.parent.after(100,self.draw)
         else:
             print("Record Stop")
@@ -464,8 +477,10 @@ class Application(tk.Frame):
             self.playButton.config(text="Stop")
             self.recordButton.config(state=tk.DISABLED)
             if (useTkSnack) :
-                self.snd.flush()
-                self.snd.read(self.currentState.loadedVowel.getSoundFile())
+                # CJR this needs testing
+                if (self.currentState.mode != "Mentor") :
+                    self.snd.flush()
+                    self.snd.read(self.currentState.loadedVowel.getSoundFile())
                 self.snd.play()
         else:
             self.playButton.config(text="Play")
@@ -522,14 +537,6 @@ class Application(tk.Frame):
 
         if (useTkSnack == False) :
             time.sleep(1)
-#            if (self.snd.length(unit='sec') > 20) :
-#                print("calling stop")
-#                # CJR calling record as if it was clicked will stop the recording
-#                # as the predetermined time.
-#                self.record()
-#                 # CJR let's see if pausing for a second helps the jitter display
-#            time.sleep(0.25)
-#        else :
 
         self.id = self.parent.after(100,self.draw)
 
@@ -542,13 +549,14 @@ class Application(tk.Frame):
         self.graphModule.reDraw(viz)
         #if self.graphModule.originViz :
         #    self.graphModule.axesDraw()
-        if (self.currentState.mode == "Practice") :
-            if (self.currentState.loadedVowel) :
-                # make sure that a vowel is loaded - on start up the config
-                # file should have had a vowel - when changing to Practice
-                # mode the user should be asked to load a vowel before
-                # entering the Practice mode
-                self.graphModule.drawMatchingViz(self.currentState.loadedVowel.getF())
+        #if (self.currentState.mode == "Practice") : # CJR let's try this for all modes
+        if (self.currentState.loadedVowel) :
+            # make sure that a vowel is loaded - on start up the config
+            # file should have had a vowel - when changing to Practice
+            # mode the user should be asked to load a vowel before
+            # entering the Practice mode
+            self.graphModule.setGender(self.currentState.loadedVowel.gender)
+            self.graphModule.drawMatchingViz(self.currentState.loadedVowel.getF())
 
     # CJR application setup and configuration methods.
     def readConfiguration(self, filename):

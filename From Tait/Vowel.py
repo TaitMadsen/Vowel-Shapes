@@ -1,7 +1,7 @@
 # Vowel.py
 
 class Vowel:
-    def __init__(self, f1, f2, f3, fileName):
+    def __init__(self, f1, f2, f3, gender, fileName):
 
         # check for if the file format is bad and the object is bad
         self.fileLoadFailed = False
@@ -10,6 +10,7 @@ class Vowel:
         self.soundFile = ""
         self.soundFilename = ""
         self.annotation = "None"
+        self.gender = gender     # default the gender to Female == 1
 
         # Check to see if the f's are all 0, and a fileName exists
         # CJR - how to we monitor and capture "bad" file formants
@@ -30,6 +31,7 @@ class Vowel:
         self.by = None
         if ( (f1 == 0 and f2 == 0 and f3 == 0) == False ) :
             self.normalize()
+        print("Gender new vowel ", self.gender)
 
 
     # Getter methods
@@ -96,6 +98,10 @@ class Vowel:
         f.write( str(self.f2) + '\n')
         f.write( str(self.f3) + '\n')
         f.write( self.annotation + '\n' )
+        if (self.gender == 1) :
+            f.write( "Female" + '\n')
+        else :
+            f.write( "Female" + '\n')
         if (len(self.soundFile) > 0) :
             # save the sound and sound filename information
             f.write( self.soundFile + '\n')
@@ -108,7 +114,7 @@ class Vowel:
         f = open(path, "r")
         info = f.read().split('\n')
         if (len(info)<3) :
-            # now enough information in the file
+            # not enough information in the file
             return False
         try :
             self.f1 = float(info[0])
@@ -118,10 +124,16 @@ class Vowel:
             return False
         if (len(info)>3) :
             self.annotation = info[3]
-        # check if there is an associated sound file and filename
+        # check if the gender was provided
         if (len(info) > 4) :
-            self.soundFile = info[4]
-            self.soundFilename = info[5]
+            if (info[4] == "Female") :
+                self.gender = 1
+            else :
+                self.gender = 2
+        # check if there is an associated sound file and filename
+        if (len(info) > 5) :
+            self.soundFile = info[5]
+            self.soundFilename = info[6]
         return True
 
 

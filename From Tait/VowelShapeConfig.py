@@ -39,7 +39,7 @@ class VowelShapeConfig:
         line = configFile.readline()
         self.defTolerance = float(line.rstrip())
         # create a vowel object from the vowel defaults
-        self.loadedVowel = Vowel(0,0,0,"")
+        self.loadedVowel = Vowel(0,0,0, 1, "")
         self.loadedVowel.setF(vowelFormants[0])
         self.loadedVowel.setAnnotation(vowelName)
         if (len(soundFile) > 0) :
@@ -47,5 +47,7 @@ class VowelShapeConfig:
         # set the current active vowel to none
         # the active vowel is the vowel that the user is singing
         self.activeVowel = None
+        # set the gender to Female as the default
+        self.singerGender = 1
         
 
