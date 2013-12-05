@@ -12,7 +12,7 @@ class GraphicsModule:
 
     def __init__(self, appWindow, viz="Graph", defVowel="i",
                     defFormants = [ [274.2, 2022.0, 3012.4] ], defTolerance = 0.1,
-                    defQueueSize = 25, defGender = 1):
+                    defQueueSize = 25, defGender = "Female"):
         #self.window = GraphWin('Vowel Shapes', width=w, height=h)
         self.window = appWindow
 
@@ -134,7 +134,8 @@ class GraphicsModule:
                 self.m.draw(self.window)
             else :
                 self.p =  self.graph.createPoint(bx, by)
-                if (delta < (self.vTolerance*2)) :
+                print("graph delta:", delta)
+                if (delta < (self.vTolerance*3)) :
                     self.p.setFill('green')
                     self.p.setOutline('green')
                 else :

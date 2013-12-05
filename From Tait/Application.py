@@ -28,9 +28,10 @@ class Application(tk.Frame):
         # make the sound object of tkSnack part of the Application class
         self.snd = sound
         #initialize the defaults for the sound processing in draw
-        self.sound_length = 2048
+        self.sound_length = 8192
         self.sound_pos = 0
         self.id = None
+        self.currentState = None
         # Dimensions
         self.width = width
         self.height = height
@@ -47,13 +48,14 @@ class Application(tk.Frame):
         # The menus
         self.setupFileMenu()
         self._currentMode = StringVar()
-        self._currentMode.set("Practice")
         self.lastMode = None
         self.setupActionMenu()
         self.setupDemoVowelMenu()
         self.setupDemoVizMenu()
+        self.gender = StringVar()
         self.setupGenderMenu()
-        self.setupMicMenu()
+        # input is not quite ready for prime time
+        #self.setupMicMenu()
         self.setupHelpMenu()
 
         # The buttons
@@ -103,7 +105,14 @@ class Application(tk.Frame):
                                         self.currentState.defQueueLength,
                                         self.currentState.singerGender)
         self.setupGraph(self.currentState.viz)
-        self.setSingerGender(self.currentState.singerGender) # default is 1 - Female, 2 - Male
+
+        # match the menus to the startup condition
+        self._currentMode.set(self.currentState.mode)
+        self.gender.set(self.currentState.loadedVowel.gender)
+        self.actionMenu.invoke(self.currentState.mode)
+        self.genderMenu.invoke(self.currentState.singerGender)
+        self.lastMode = self.currentState.mode
+        self.notClearingVowel = True
 
         # disable the Play button if there is not sound for the loaded Vowel
         self.disablePlayOnNoSound()
@@ -158,18 +167,22 @@ class Application(tk.Frame):
         demovizMenu.add_command(label="Triangle", command=self.doTriangle)
         demovizMenu.add_command(label="Oval", command=self.doOval)
 
-        self.menubar.add_cascade(label="Viz", menu=demovizMenu)
+        self.menubar.add_cascade(label="Shape", menu=demovizMenu)
 
     def setupGenderMenu(self):
         self.genderMenu = tk.Menu(self.menubar)
     
-        self.genderMenu.add_radiobutton(label="Female", command=lambda index=1 : self.setSingerGender(index) )
-        self.genderMenu.add_radiobutton(label="Male",  command=lambda index=2 : self.setSingerGender(index) )
+        self.genderMenu.add_radiobutton(label="Female", variable=self.gender, command = self.setGenderFemale, value="Female")
+        self.genderMenu.add_radiobutton(label="Male", variable=self.gender, command = self.setGenderMale, value="Male")
+#        self.genderMenu.add_checkbutton(label="Female", variable=self.gender,
+#                        onvalue=1, offvalue=2,command=lambda index=1 : self.setSingerGender(index))
+#        self.genderMenu.add_checkbutton(label="Male", variable=self.gender,
+#                        onvalue=2, offvalue=1,command=lambda index=2 : self.setSingerGender(index))
     
         self.menubar.add_cascade(label="Gender", menu = self.genderMenu)
 
     def setupMicMenu(self):
-        micMenu = tk.Menu(self.menubar)
+        self.micMenu = tk.Menu(self.menubar)
         if (useTkSnack) :
             # build the menu using the microphones listed
             self.inputDevices = tkSnack.audio.inputDevices()
@@ -177,14 +190,23 @@ class Application(tk.Frame):
             count = 0
             for mic in self.inputDevices :
                 print("mic ", mic, " count ", count)
-                micMenu.add_radiobutton(label=mic, command=lambda index=count : self.setInputDevice(index))
+                self.micMenu.add_radiobutton(label=mic, command=lambda index=count : self.setInputDevice(index))
                 count = count + 1
-        self.menubar.add_cascade(label="Input Devices", menu=micMenu)
+        self.menubar.add_cascade(label="Input Devices", menu=self.micMenu)
 
-    def setSingerGender(self, item):
-        self.currentState.singerGender = item
-        if (self.currentState.activeVowel) :
-            self.currentState.activeVowel.gender = item
+    def setGenderFemale(self):
+        self.gender.set("Female")
+        print("Setting gender to ", self.gender.get())
+        if (self.currentState) :
+            if (self.currentState.activeVowel) :
+                self.currentState.activeVowel.gender = self.gender.get()
+
+    def setGenderMale(self):
+        self.gender.set("Male")
+        print("Setting gender to ", self.gender.get())
+        if (self.currentState) :
+            if (self.currentState.activeVowel) :
+                self.currentState.activeVowel.gender = self.gender.get()
 
     def setInputDevice(self, item):
         print("select ", item)
@@ -232,6 +254,7 @@ class Application(tk.Frame):
                 # this saves the formant values of the last note
                 # save to the relative default directory - future work CJR
                 defaultFileSave = os.path.join(self.vowel_path, filename)
+                print("save vowel gender ", self.currentState.activeVowel.gender)
                 self.currentState.activeVowel.saveToFile(defaultFileSave)
         else :
             #request that the user record a vowel first
@@ -249,7 +272,7 @@ class Application(tk.Frame):
                 filetypes=self.filemask)
         if (filename) :
             # the selected file is the formant file
-            newVowel = Vowel(0,0,0, self.currentState.singerGender, filename)
+            newVowel = Vowel(0,0,0, self.gender.get(), filename)
             if (newVowel.fileLoadFailed) :
                 # the file failed to load - report a problem
                 messagebox.showinfo("Error loading Vowel"," There was an error loading the vowel file.\n Please select a different file.")
@@ -275,7 +298,11 @@ class Application(tk.Frame):
         self.matchVowelLabel.config(text="")
         # undraw all the vowels - active and example
         self.graphModule.unDrawVowels()
-
+        # set the mode to Mentor - no other mode makes sense
+        self.notClearingVowel = False
+        self.actionMenu.invoke("Mentor")
+        self.notClearingVowel = True
+        
     # CJR added an exit function
     def exitApp(self):
         self.parent.destroy()
@@ -299,31 +326,31 @@ class Application(tk.Frame):
     # this will do for now.
     def loadi(self):
         formants = [ [274.2, 2022.0, 3012.4] ]
-        self.loadAnyVowel(formants, "i", self.currentState.singerGender)
+        self.loadAnyVowel(formants, "i", self.gender.get())
 
     def loadI(self):
         formants = [ [268.8, 2353.4, 3420.8] ]
-        self.loadAnyVowel(formants, "I", self.currentState.singerGender)
+        self.loadAnyVowel(formants, "I", self.gender.get())
 
     def loadE(self):
         formants = [ [492.7, 2088.3, 2656.1] ]
-        self.loadAnyVowel(formants, "E", self.currentState.singerGender)
+        self.loadAnyVowel(formants, "E", self.gender.get())
 
     def loadae(self):
         formants = [ [753.9, 1619.9, 2494.4] ]
-        self.loadAnyVowel(formants, "ae", self.currentState.singerGender)
+        self.loadAnyVowel(formants, "ae", self.gender.get())
 
     def loadas(self):
         formants = [ [707.6, 1027.2, 2695.7] ]
-        self.loadAnyVowel(formants, "as", self.currentState.singerGender)
+        self.loadAnyVowel(formants, "as", self.gender.get())
 
     def loado(self):
         formants = [ [405.6, 696.7, 2779.6] ]
-        self.loadAnyVowel(formants, "o", self.currentState.singerGender)
+        self.loadAnyVowel(formants, "o", self.gender.get())
 
     def loadu(self):
         formants = [ [360.2, 858.6,  2654.7] ]
-        self.loadAnyVowel(formants, "u", self.currentState.singerGender)
+        self.loadAnyVowel(formants, "u", self.gender.get())
 
     # load any vowel with formant and annotation
     def loadAnyVowel(self, formantList, annotation, gender, sndFile="", sndFilename=""):
@@ -340,6 +367,12 @@ class Application(tk.Frame):
         self.matchVowelLabel.config(text=self.currentState.loadedVowel.getAnnotation())
         self.graphModule.setGender(self.currentState.loadedVowel.gender)
         self.graphModule.drawMatchingViz(self.currentState.loadedVowel.getF())
+        # this may not be correct but making any other state changes is test and
+        # time problematic.
+        # on loading a vowel assume that the mode should be "Practice" - this is
+        # the most general mode with the most options.
+        self.lastMode = "Practice"
+        self.actionMenu.invoke("Practice")
 
     # for demo vizs menu items
     def doGraph(self):
@@ -364,11 +397,9 @@ class Application(tk.Frame):
                 # user does not want to continue - return focus to parent and return
                 self.parent.focus_force()
                 # CJR this is broken - if the selection fails keep the check next
-                # to the previous mode - don't have time to fix
-                #print("current:", self._currentMode.get()," last:", self.lastMode)
-                self._currentMode.set(self.lastMode)
-                self.parent.update_idletasks() # to make sure that the geometry is set
-                #print("current:", self._currentMode.get()," last:", self.lastMode)
+                # to the previous mode
+                self.actionMenu.invoke(self.lastMode)
+                print("current:", self._currentMode.get()," last:", self.lastMode)
                 return
             # let the user load the vowel then come back here and doe
             # the remainder of the practice mode actions
@@ -376,29 +407,33 @@ class Application(tk.Frame):
             if (vowelLoadedOK == False) :
                 # let the user know something went wrong
                 messagebox.showinfo("Problem Loading Vowel", "There was a problem loading the vowel. Please try again.")
-                self._currentMode.set(self.lastMode)
+                self.actionMenu.invoke(self.lastMode)
                 self.parent.focus_force()
                 return
-        # there is a vowel loaded - disable the Play button
+        # there is a vowel loaded - disable the Play button if no sound file
         # enable the record button
-        self.playButton.config(state=tk.DISABLED)
+        self.disablePlayOnNoSound()
         self.recordButton.config(state=tk.NORMAL)
         # set the currect state mode
+        self._currentMode.set("Practice")
         self.currentState.mode = "Practice"
-        self.lastMode = self.currentState.mode
+        self.lastMode = self._currentMode
         self.parent.focus_force()
 
     # Mentor mode - How should this work?
     def mentorMode(self):
         # it should also clear all previous vowel drawings - clearVowels resets
         # the buttons - do it first
-        self.clearVowel()
+        if (self.notClearingVowel) :
+            self.clearVowel()
         # Then Mentor mode should enable and disable the correct buttons
         self.playButton.config(state=tk.DISABLED)
         self.recordButton.config(state=tk.NORMAL)
         # set the currect state mode
         self.currentState.mode = "Mentor"
         self.lastMode = self.currentState.mode
+        self._currentMode.set("Mentor")
+        print("Mentor mode :", self._currentMode.get())
 
     # Study mode - a vowel with a sound file must be loaded
     def studyMode(self):
@@ -409,9 +444,8 @@ class Application(tk.Frame):
             loadVowel = messagebox.askyesno("Need to Load Vowel", "Study Mode requires a vowel with a sound file to be loaded.\n Do you want to load a vowel?")
             if (loadVowel == False) :
                 # user does not want to continue - return focus to parent and return
+                self.actionMenu.invoke(self.lastMode)
                 self.parent.focus_force()
-                self._currentMode.set(self.lastMode)
-                self.parent.update_idletasks() # to make sure that the geometry is set
                 return
             # let the user load the vowel then come back here and doe
             # the remainder of the study mode actions
@@ -419,16 +453,14 @@ class Application(tk.Frame):
             if (vowelLoadedOK == False) :
                 # let the user know something went wrong
                 messagebox.showinfo("Problem Loading Vowel", "There was a problem loading the vowel. Please try again.")
+                self.actionMenu.invoke(self.lastMode)
                 self.parent.focus_force()
-                self._currentMode.set(self.lastMode)
-                self.parent.update_idletasks() # to make sure that the geometry is set
                 return
         if (len(self.currentState.loadedVowel.getSoundFile()) == 0) :
             # loaded vowel does not have sound - let the user know and exit
             messagebox.showinfo("Loading Vowel - no sound file", "The loaded vowel does not have a sound file.\n Please load a different vowel.")
+            self.actionMenu.invoke(self.lastMode)
             self.parent.focus_force()
-            self._currentMode.set(self.lastMode)
-            self.parent.update_idletasks() # to make sure that the geometry is set
             return
         # there is a sample vowel loadeed with sound
         # disable record - enable play
@@ -436,13 +468,14 @@ class Application(tk.Frame):
         self.disablePlayOnNoSound()
         # set the currect state mode
         self.currentState.mode = "Study"
-        self.lastMode = self.currentState.mode
+        self.lastMode = self._currentMode
+        self._currentMode.set("Study")
         self.parent.focus_force()
 
     # Review mode - will not implement
     def reviewMode(self):
         messagebox.showinfo("Review Mode - future", "The Review Mode will be implemented in a future version.\nThank you for your interest.\nPlease let us know your interest in this feature.")
-        self.currentMode = self.lastMode
+        self.actionMenu.invoke(self.lastMode)
         self.parent.focus_force()
 
     # Button commands
@@ -453,7 +486,7 @@ class Application(tk.Frame):
             self.recordButton.config(text="Stop")
             self.playButton.config(state=tk.DISABLED)
             # initialize the activeVowel
-            self.currentState.activeVowel = Vowel(10,10,10, self.currentState.singerGender, "")
+            self.currentState.activeVowel = Vowel(10,10,10, self.gender.get(), "")
             # CJR add in the tkSnack commands to start the recording
             if (useTkSnack) :
                 self.snd.flush()
@@ -464,7 +497,8 @@ class Application(tk.Frame):
         else:
             print("Record Stop")
             self.recordButton.config(text="Record")
-            self.playButton.config(state=tk.NORMAL)
+            if (self._currentMode.get() is not "Mentor") :
+                self.disablePlayOnNoSound()
             # CJR add in the tkSnack commands to stop the recording
             if (useTkSnack) :
                 self.snd.stop()
@@ -478,15 +512,27 @@ class Application(tk.Frame):
             self.recordButton.config(state=tk.DISABLED)
             if (useTkSnack) :
                 # CJR this needs testing
-                if (self.currentState.mode != "Mentor") :
-                    self.snd.flush()
-                    self.snd.read(self.currentState.loadedVowel.getSoundFile())
+                #if (self.currentState.mode != "Mentor") :
+                self.snd.flush()
+                self.snd.read(self.currentState.loadedVowel.getSoundFile())
+                # this callback does not work - just leave as stop until the
+                # user resets the button
+                # self.snd.play(command=self.playEnded())
                 self.snd.play()
         else:
             self.playButton.config(text="Play")
-            self.recordButton.config(state=tk.NORMAL)
+            if (self._currentMode.get() is not "Study") :
+                self.recordButton.config(state=tk.NORMAL)
             if (useTkSnack) :
                 self.snd.stop()
+
+    def playEnded(self):
+        self.playButton.config(text="Play")
+        if (self._currentMode.get() is not "Study") :
+            self.recordButton.config(state=tk.NORMAL)
+        if (useTkSnack) :
+            self.snd.stop()
+
 
     # disable play if there is not sound for the loaded variable
     def disablePlayOnNoSound(self):
@@ -503,14 +549,20 @@ class Application(tk.Frame):
             if (self.snd.length() > self.sound_length) :
                 self.sound_pos = self.snd.length() - self.sound_length
                 formants = self.snd.formant(start=self.sound_pos)
+                # test to see if parameters to formant change anything much
                 #formants = self.snd.formant(start=self.sound_pos,numformants=4, framelength=0.005, windowtype='Hanning', windowlength=0.024, lpctype=1)
                 #print(formants[0][0], formants[0][1], formants[0][2], formants[0][3] )
+                # make sure the sound_length is large enough to get an average
+                # formant value. The single samples can vary greatly (f2 by 1000)
                 fSum = [ sum(x) for x in zip(*formants) ]
                 fLength = len(formants)
                 fAvg = [x/fLength for x in fSum]
-                audioData = [ [ fAvg[0], fAvg[1], fAvg[2] ] ]
+                # set the last formants into the active vowel - assume they
+                # are "good"
                 formantList = [ fAvg[0], fAvg[1], fAvg[2] ]
                 self.currentState.activeVowel.setF(formantList)
+                # set the data to plot
+                audioData = [ formantList ]
                 #print(fLength, formantList)
             else :
                 if ( self.currentState.loadedVowel is not None) :
@@ -597,7 +649,7 @@ def main():
     if (useTkSnack) :
         print("using TkSnack")
         tkSnack.initializeSnack(root)
-        snd = tkSnack.Sound()
+        snd = tkSnack.Sound(rate=44100)
     else :
         print("not using TkSnack")
         snd = None
@@ -605,6 +657,8 @@ def main():
     height = 700
     # ("<width>x<height>+<xcoords>+<ycoords>")
     root.geometry("%sx%s+80+70" % (width, height) )
+    # remove the tear off menu option
+    root.option_add('*tearOff', False)
     root.update_idletasks() # to make sure that the geometry is set
     app = Application(root, snd, width, height)
     # CJR testing to see if this will stop the process on X window closure

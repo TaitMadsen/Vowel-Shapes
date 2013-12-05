@@ -98,10 +98,7 @@ class Vowel:
         f.write( str(self.f2) + '\n')
         f.write( str(self.f3) + '\n')
         f.write( self.annotation + '\n' )
-        if (self.gender == 1) :
-            f.write( "Female" + '\n')
-        else :
-            f.write( "Female" + '\n')
+        f.write( self.gender + '\n')
         if (len(self.soundFile) > 0) :
             # save the sound and sound filename information
             f.write( self.soundFile + '\n')
@@ -126,14 +123,12 @@ class Vowel:
             self.annotation = info[3]
         # check if the gender was provided
         if (len(info) > 4) :
-            if (info[4] == "Female") :
-                self.gender = 1
-            else :
-                self.gender = 2
+            self.gender = info[4]
         # check if there is an associated sound file and filename
         if (len(info) > 5) :
             self.soundFile = info[5]
             self.soundFilename = info[6]
+        print("Gender is ", self.gender)
         return True
 
 
