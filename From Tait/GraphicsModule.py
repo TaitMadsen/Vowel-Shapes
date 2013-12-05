@@ -134,7 +134,6 @@ class GraphicsModule:
                 self.m.draw(self.window)
             else :
                 self.p =  self.graph.createPoint(bx, by)
-                print("graph delta:", delta)
                 if (delta < (self.vTolerance*3)) :
                     self.p.setFill('green')
                     self.p.setOutline('green')

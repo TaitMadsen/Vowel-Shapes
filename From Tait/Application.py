@@ -536,10 +536,11 @@ class Application(tk.Frame):
 
     # disable play if there is not sound for the loaded variable
     def disablePlayOnNoSound(self):
-        if ( len(self.currentState.loadedVowel.getSoundFileName()) ==0 ) :
-            self.playButton.config(state=tk.DISABLED)
-        else :
-            self.playButton.config(state=tk.NORMAL)
+        if (self.currentState.loadedVowel) :
+            if ( len(self.currentState.loadedVowel.getSoundFileName()) ==0 ) :
+                self.playButton.config(state=tk.DISABLED)
+            else :
+                self.playButton.config(state=tk.NORMAL)
 
     # CJR window methods
     def draw(self):
