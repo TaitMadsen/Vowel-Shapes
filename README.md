@@ -18,9 +18,14 @@ the correct vowel sound. This enables teachers and the community to set exacting
 students to achieve and master.
 
 VowelShapes requires a configuration file - vowelShapeConfig.txt - with the following characteristics:
+
 line 1 - string - type of vizualisation: Triangle, Oval, Graph
+
 line 2 - string - mode to startup in: Practice, Study, Mentor
+
 line 3 - string$list - default vowel to load - this defined as character and formant set ["i"]$[[f1, f2, f3]]
+
 line 4 - numeric - default setting for the moving average window for normalized formant calculation
+
 line 5 - numeric - defatul tolerance for "matching" a vowel
 
