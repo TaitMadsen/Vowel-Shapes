@@ -111,7 +111,7 @@ class Application(tk.Frame):
         self.gender.set(self.currentState.loadedVowel.gender)
         self.actionMenu.invoke(self.currentState.mode)
         self.genderMenu.invoke(self.currentState.singerGender)
-        self.lastMode = self.currentState.mode
+        self.lastMode = self._currentMode.get()
         self.notClearingVowel = True
 
         # disable the Play button if there is not sound for the loaded Vowel
@@ -254,7 +254,7 @@ class Application(tk.Frame):
                 # this saves the formant values of the last note
                 # save to the relative default directory - future work CJR
                 defaultFileSave = os.path.join(self.vowel_path, filename)
-                print("save vowel gender ", self.currentState.activeVowel.gender)
+                #print("save vowel gender ", self.currentState.activeVowel.gender)
                 self.currentState.activeVowel.saveToFile(defaultFileSave)
         else :
             #request that the user record a vowel first
@@ -364,6 +364,7 @@ class Application(tk.Frame):
         self.currentState.loadedVowel.setSoundFile(sndFile, sndFilename)
         # disable or enable the play button based on sound available
         self.disablePlayOnNoSound()
+        self.recordButton.config(state=tk.NORMAL)
         self.matchVowelLabel.config(text=self.currentState.loadedVowel.getAnnotation())
         self.graphModule.setGender(self.currentState.loadedVowel.gender)
         self.graphModule.drawMatchingViz(self.currentState.loadedVowel.getF())
@@ -371,8 +372,15 @@ class Application(tk.Frame):
         # time problematic.
         # on loading a vowel assume that the mode should be "Practice" - this is
         # the most general mode with the most options.
-        self.lastMode = "Practice"
-        self.actionMenu.invoke("Practice")
+        #self.lastMode = "Practice"
+        #self.lastMode = self._currentMode
+        #self.actionMenu.invoke("Practice")
+        # set the currect state mode
+        self._currentMode.set("Practice")
+        self.currentState.mode = "Practice"
+        self.lastMode = self._currentMode.get()
+        self.actionMenu.invoke(self.lastMode)
+        self.parent.focus_force()
 
     # for demo vizs menu items
     def doGraph(self):
@@ -399,7 +407,6 @@ class Application(tk.Frame):
                 # CJR this is broken - if the selection fails keep the check next
                 # to the previous mode
                 self.actionMenu.invoke(self.lastMode)
-                print("current:", self._currentMode.get()," last:", self.lastMode)
                 return
             # let the user load the vowel then come back here and doe
             # the remainder of the practice mode actions
@@ -417,7 +424,7 @@ class Application(tk.Frame):
         # set the currect state mode
         self._currentMode.set("Practice")
         self.currentState.mode = "Practice"
-        self.lastMode = self._currentMode
+        self.lastMode = self._currentMode.get()
         self.parent.focus_force()
 
     # Mentor mode - How should this work?
@@ -430,10 +437,9 @@ class Application(tk.Frame):
         self.playButton.config(state=tk.DISABLED)
         self.recordButton.config(state=tk.NORMAL)
         # set the currect state mode
-        self.currentState.mode = "Mentor"
-        self.lastMode = self.currentState.mode
         self._currentMode.set("Mentor")
-        print("Mentor mode :", self._currentMode.get())
+        self.currentState.mode = "Mentor"
+        self.lastMode = self._currentMode.get()
 
     # Study mode - a vowel with a sound file must be loaded
     def studyMode(self):
@@ -468,8 +474,8 @@ class Application(tk.Frame):
         self.disablePlayOnNoSound()
         # set the currect state mode
         self.currentState.mode = "Study"
-        self.lastMode = self._currentMode
         self._currentMode.set("Study")
+        self.lastMode = self._currentMode.get()
         self.parent.focus_force()
 
     # Review mode - will not implement
@@ -480,7 +486,7 @@ class Application(tk.Frame):
 
     # Button commands
     def record(self):
-        print("in the record method ", self.id)
+        #print("in the record method ", self.id)
         if (self.recordButton["text"] == "Record") :
             print ("Record start")
             self.recordButton.config(text="Stop")
