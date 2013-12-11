@@ -29,3 +29,9 @@ line 4 - numeric - default setting for the moving average window for normalized 
 
 line 5 - numeric - defatul tolerance for "matching" a vowel
 
+Known issues:
+Sometimes the shape will continue to redraw after clicking stop to stop the recording.
+If this occurs exit the application and restart.
+This may have an association with the Clear Vowel action. If you need to clear the display select Mentor mode or just load a different vowel.
+This appears to be a timing issue on some PCs/displays.
+

@@ -73,8 +73,10 @@ class GraphicsModule:
         #o = None
         #global o
         for d in audioData:
+            undrawo = False
             if self.o:
-                self.o.undraw()
+                #self.o.undraw()
+                undrawo = True
 
             bx, by, delta = self.normalize(d[0], d[1], d[2])
             #o = createOval( Point(50, 37), 25, bx, by)
@@ -82,7 +84,11 @@ class GraphicsModule:
                 self.m = self.createOval( self.originViz, 25, bx, by, 10)
                 self.m.draw(self.window)
             else :
-                self.o = self.createOval( self.originViz, 25, bx, by, delta)
+                #self.o = self.createOval( self.originViz, 25, bx, by, delta)
+                newO = self.createOval( self.originViz, 25, bx, by, delta)
+                if (undrawo) :
+                    self.o.undraw()
+                self.o = newO
                 self.o.draw(self.window)
             #print("Oval:", bx, by)
             return bx, by
@@ -95,8 +101,10 @@ class GraphicsModule:
         #global t
         #t = None
         for d in audioData:
+            undrawt = False
             if self.t :
-                self.t.undraw()
+                #self.t.undraw()
+                undrawt = True
 
             bx, by, delta = self.normalize(d[0], d[1], d[2])
             #print("bx Triangle: ", self.queueBx)
@@ -105,7 +113,11 @@ class GraphicsModule:
                 self.m = self.createTriangle( self.originViz, 70, bx, by)
                 self.m.draw(self.window)
             else :
-                self.t = self.createTriangle( self.originViz, 70, bx, by, delta)
+                #self.t = self.createTriangle( self.originViz, 70, bx, by, delta)
+                newT = self.createTriangle( self.originViz, 70, bx, by, delta)
+                if (undrawt) :
+                    self.t.undraw()
+                self.t = newT
                 self.t.draw(self.window)
             #print("Triangle:", bx, by)
             return bx, by
@@ -118,10 +130,11 @@ class GraphicsModule:
             self.graph.undrawAxis()
         self.graph = Graph( Point(75, 50), 50)
         self.graph.draw(self.window)
-        #p = None
         for d in audioData:
+            undrawp = False
             if self.p:
-                self.p.undraw()
+                #self.p.undraw()
+                undrawp = True
 
             bx, by, delta = self.normalize(d[0], d[1], d[2])
 
@@ -133,7 +146,11 @@ class GraphicsModule:
                 self.m.setOutline('blue')
                 self.m.draw(self.window)
             else :
-                self.p =  self.graph.createPoint(bx, by)
+                #self.p =  self.graph.createPoint(bx, by)
+                newp = self.graph.createPoint(bx, by)
+                if (undrawp) :
+                    self.p.undraw()
+                self.p = newp
                 if (delta < (self.vTolerance*3)) :
                     self.p.setFill('green')
                     self.p.setOutline('green')
