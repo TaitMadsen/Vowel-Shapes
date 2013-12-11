@@ -54,8 +54,8 @@ class Application(tk.Frame):
         self.setupDemoVizMenu()
         self.gender = StringVar()
         self.setupGenderMenu()
-        # input is not quite ready for prime time
-        #self.setupMicMenu()
+        # input is not quite ready for prime time - but use for the poster session
+        self.setupMicMenu()
         self.setupHelpMenu()
 
         # The buttons
@@ -493,21 +493,21 @@ class Application(tk.Frame):
             self.playButton.config(state=tk.DISABLED)
             # initialize the activeVowel
             self.currentState.activeVowel = Vowel(10,10,10, self.gender.get(), "")
+            self.graphModule.setGender(self.currentState.activeVowel.gender)
             # CJR add in the tkSnack commands to start the recording
             if (useTkSnack) :
                 self.snd.flush()
                 self.snd.record()
             #self.startRecord()
-            self.graphModule.setGender(self.currentState.activeVowel.gender)
             self.id = self.parent.after(100,self.draw)
         else:
+            # CJR add in the tkSnack commands to stop the recording
+            if (useTkSnack) :
+                self.snd.stop()
             print("Record Stop")
             self.recordButton.config(text="Record")
             if (self._currentMode.get() is not "Mentor") :
                 self.disablePlayOnNoSound()
-            # CJR add in the tkSnack commands to stop the recording
-            if (useTkSnack) :
-                self.snd.stop()
             #self.stop()
             self.parent.after_cancel(self.id)
         print("exiting the record method ", self.id)
@@ -526,11 +526,11 @@ class Application(tk.Frame):
                 # self.snd.play(command=self.playEnded())
                 self.snd.play()
         else:
+            if (useTkSnack) :
+                self.snd.stop()
             self.playButton.config(text="Play")
             if (self._currentMode.get() is not "Study") :
                 self.recordButton.config(state=tk.NORMAL)
-            if (useTkSnack) :
-                self.snd.stop()
 
     def playEnded(self):
         self.playButton.config(text="Play")
@@ -538,7 +538,6 @@ class Application(tk.Frame):
             self.recordButton.config(state=tk.NORMAL)
         if (useTkSnack) :
             self.snd.stop()
-
 
     # disable play if there is not sound for the loaded variable
     def disablePlayOnNoSound(self):
